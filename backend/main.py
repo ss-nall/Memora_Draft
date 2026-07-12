@@ -8,6 +8,7 @@ from core.config import settings
 from api.auth import router as auth_router
 from api.events import router as events_router
 from api.media import router as media_router
+from api.guest import router as guest_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -34,6 +35,7 @@ def health_check():
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(events_router, prefix="/events", tags=["events"])
 app.include_router(media_router, prefix="/media", tags=["media"])
+app.include_router(guest_router, prefix="/guest", tags=["guest"])
 
 import os
 os.makedirs("uploads", exist_ok=True)

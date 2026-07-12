@@ -11,6 +11,7 @@ from models.event import Event
 from models.user import User
 from schemas.media import MediaResponse
 from api.deps import get_current_user
+from core.ai import extract_face_embedding, add_embedding_to_index
 
 router = APIRouter()
 
@@ -43,6 +44,9 @@ async def upload_media(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    # Extract Face Embeddings using AI Engine
+    embedding = extract_face_embedding(file_path)
+    
     # Create DB record
     media = Media(
         event_id=event_id,
@@ -52,6 +56,10 @@ async def upload_media(
     db.add(media)
     db.commit()
     db.refresh(media)
+
+    # Add to FAISS memory index if a face was detected
+    if embedding:
+        add_embedding_to_index(str(event_id), str(media.id), embedding)
 
     return media
 

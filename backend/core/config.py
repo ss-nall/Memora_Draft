@@ -30,11 +30,11 @@ class Settings(BaseSettings):
             return v
         return PostgresDsn.build(
             scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
+            username=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
             host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
+            port=int(values.get("POSTGRES_PORT")) if values.get("POSTGRES_PORT") else 5432,
+            path=f"{values.get('POSTGRES_DB') or ''}",
         )
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")

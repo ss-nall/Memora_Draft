@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
-
+from api.auth import router as auth_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -23,4 +23,4 @@ if settings.BACKEND_CORS_ORIGINS:
 def health_check():
     return {"status": "ok", "project": settings.PROJECT_NAME}
 
-# API router will be included here in future modules
+app.include_router(auth_router, prefix="/auth", tags=["auth"])

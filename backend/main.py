@@ -4,6 +4,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from core.config import settings
 from api.auth import router as auth_router
+from api.events import router as events_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -28,3 +29,4 @@ def health_check():
     return {"status": "ok", "project": settings.PROJECT_NAME}
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(events_router, prefix="/events", tags=["events"])

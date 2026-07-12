@@ -2,9 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
+from fastapi.staticfiles import StaticFiles
+
 from core.config import settings
 from api.auth import router as auth_router
 from api.events import router as events_router
+from api.media import router as media_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -30,3 +33,8 @@ def health_check():
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(events_router, prefix="/events", tags=["events"])
+app.include_router(media_router, prefix="/media", tags=["media"])
+
+import os
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

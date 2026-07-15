@@ -17,3 +17,4 @@ insightface>=0.7.3
 onnxruntime>=1.15.1
 faiss-cpu>=1.7.4
 opencv-python-headless>=4.8.0
+bcrypt==4.0.1

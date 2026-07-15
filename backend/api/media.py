@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from models.media import Media
+from models.media import Media, MediaType
 from models.event import Event
 from models.user import User
 from schemas.media import MediaResponse
 from api.deps import get_current_user
-from core.ai import extract_face_embedding, add_embedding_to_index
+from core.ai import extract_face_embeddings, add_embedding_to_index
 
 router = APIRouter()
 
@@ -45,21 +45,22 @@ async def upload_media(
         shutil.copyfileobj(file.file, buffer)
 
     # Extract Face Embeddings using AI Engine
-    embedding = extract_face_embedding(file_path)
+    embeddings = extract_face_embeddings(file_path)
     
     # Create DB record
     media = Media(
         event_id=event_id,
-        file_path=file_path, # We will serve this statically
-        file_type=file.content_type
+        storage_url=file_path,
+        media_type=MediaType.VIDEO if "video" in file.content_type else MediaType.PHOTO
     )
     db.add(media)
     db.commit()
     db.refresh(media)
 
-    # Add to FAISS memory index if a face was detected
-    if embedding:
-        add_embedding_to_index(str(event_id), str(media.id), embedding)
+    # Add to FAISS memory index if faces were detected
+    if embeddings:
+        for embedding in embeddings:
+            add_embedding_to_index(str(event_id), str(media.id), embedding)
 
     return media
 

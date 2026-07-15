@@ -34,15 +34,39 @@ def create_event(
         invite_code = generate_invite_code()
 
     event = Event(
-        name=event_in.name,
+        title=event_in.title,
         date=event_in.date,
-        location=event_in.location,
         description=event_in.description,
-        settings=event_in.settings,
         photographer_id=current_user.id,
         invite_code=invite_code
     )
     db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
+
+@router.put("/{event_id}", response_model=EventResponse)
+def update_event(
+    *,
+    db: Session = Depends(get_db),
+    event_id: uuid.UUID,
+    event_in: EventUpdate,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Update an event.
+    """
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if event.photographer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if event_in.title is not None:
+        event.title = event_in.title
+    if event_in.date is not None:
+        event.date = event_in.date
+    if event_in.description is not None:
+        event.description = event_in.description
     db.commit()
     db.refresh(event)
     return event

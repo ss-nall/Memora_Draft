@@ -10,7 +10,7 @@ from models.event import Event
 from models.media import Media
 from schemas.event import EventResponse
 from schemas.media import MediaResponse
-from core.ai import extract_face_embedding, find_matching_photos
+from core.ai import extract_face_embeddings, find_matching_photos
 
 router = APIRouter()
 
@@ -53,19 +53,34 @@ async def match_guest_photos(
 
     try:
         # 3. Extract Face from Selfie
-        target_embedding = extract_face_embedding(temp_path)
-        if target_embedding is None:
+        embeddings = extract_face_embeddings(temp_path)
+        if not embeddings:
             raise HTTPException(status_code=400, detail="No face detected in selfie")
 
-        # 4. Search FAISS Index
-        matched_media_ids = find_matching_photos(str(event.id), target_embedding)
+        target_embedding = embeddings[0]
 
-        # 5. Retrieve Media records from DB
+        # 4. Search FAISS Index
+        raw_matched_media_ids = find_matching_photos(str(event.id), target_embedding)
+
+        # 5. Deduplicate preserving FAISS order (closest matches first)
+        matched_media_ids = []
+        seen = set()
+        for media_id in raw_matched_media_ids:
+            if media_id not in seen:
+                seen.add(media_id)
+                matched_media_ids.append(media_id)
+
         if not matched_media_ids:
             return []
             
+        # 6. Retrieve Media records from DB
         matched_media = db.query(Media).filter(Media.id.in_(matched_media_ids)).all()
-        return matched_media
+        
+        # 7. Re-sort DB results to strictly follow FAISS ranking
+        media_dict = {str(m.id): m for m in matched_media}
+        sorted_media = [media_dict[m_id] for m_id in matched_media_ids if m_id in media_dict]
+        
+        return sorted_media
 
     finally:
         # 6. Cleanup temporary selfie

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -12,8 +12,12 @@ import { motion } from "framer-motion";
 interface Media {
   id: string;
   storage_url: string;
+  cloudinary_url?: string;
   media_type: string;
   created_at: string;
+  uploader?: {
+    full_name: string;
+  };
 }
 
 export default function EventGalleryPage({ params }: { params: Promise<{ eventId: string }> }) {
@@ -40,9 +44,22 @@ export default function EventGalleryPage({ params }: { params: Promise<{ eventId
     }
   };
 
+  const handleDelete = async (mediaId: string) => {
+    if (!confirm("Are you sure you want to delete this media? It will also remove all AI face data associated with it.")) return;
+    
+    try {
+      await api.delete(`/media/${mediaId}`);
+      setPhotos((prev) => prev.filter(p => p.id !== mediaId));
+    } catch (err) {
+      console.error("Failed to delete media:", err);
+      alert("Failed to delete the photo. Please try again.");
+    }
+  };
+
   // Helper to format backend path to valid frontend URL
-  const getImageUrl = (storageUrl: string) => {
-    const normalizedPath = storageUrl.replace(/\\/g, '/');
+  const getImageUrl = (photo: Media) => {
+    if (photo.cloudinary_url) return photo.cloudinary_url;
+    const normalizedPath = photo.storage_url.replace(/\\/g, '/');
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     return `${baseUrl}/${normalizedPath}`;
   };
@@ -105,14 +122,28 @@ export default function EventGalleryPage({ params }: { params: Promise<{ eventId
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={getImageUrl(photo.storage_url)}
+                src={getImageUrl(photo)}
                 alt="Event Photo"
                 className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-                <span className="text-xs text-white font-mono opacity-50 truncate">
-                  {photo.id.split('-')[0]}
-                </span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-3">
+                <div className="flex flex-col flex-1 truncate mr-2">
+                  <span className="text-xs text-white font-mono opacity-50 truncate">
+                    {photo.id.split('-')[0]}
+                  </span>
+                  {photo.uploader?.full_name && (
+                    <span className="text-xs text-purple-300 font-semibold truncate mt-0.5">
+                      Uploaded by: {photo.uploader.full_name}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleDelete(photo.id)}
+                  className="p-1.5 bg-red-500/20 hover:bg-red-500 text-white rounded-md transition-colors backdrop-blur-sm shrink-0"
+                  title="Delete Photo"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </motion.div>
           ))}

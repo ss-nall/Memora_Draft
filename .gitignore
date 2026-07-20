@@ -36,3 +36,8 @@ Thumbs.db
 
 # Project specific
 backend/alembic.ini
+backend/uploads/
+*.jpeg
+*.jpg
+*.png
+*.mp4

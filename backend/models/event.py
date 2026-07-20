@@ -14,10 +14,10 @@ class Event(Base):
     description = Column(Text, nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
     invite_code = Column(String, unique=True, index=True, nullable=False)
-    photographer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    photographer = relationship("User", back_populates="events")
+    members = relationship("EventMember", back_populates="event", cascade="all, delete-orphan")
     media = relationship("Media", back_populates="event", cascade="all, delete-orphan")
     memories = relationship("Memory", back_populates="event", cascade="all, delete-orphan")
+    contributor_requests = relationship("ContributorRequest", back_populates="event", cascade="all, delete-orphan")

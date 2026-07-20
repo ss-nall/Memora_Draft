@@ -22,7 +22,6 @@ class EventUpdate(BaseModel):
 # Properties to return to client
 class EventResponse(EventBase):
     id: uuid.UUID
-    photographer_id: uuid.UUID
     invite_code: str
     created_at: datetime
 

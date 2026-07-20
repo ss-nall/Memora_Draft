@@ -8,6 +8,7 @@ import { Calendar, Plus, Users, Image as ImageIcon, Copy, Check, Camera } from "
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { CreateEventModal } from "@/components/CreateEventModal";
+import { QRCodeModal } from "@/components/QRCodeModal";
 import Link from "next/link";
 
 interface Event {
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [qrModalEvent, setQrModalEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -106,20 +108,30 @@ export default function DashboardPage() {
                   
                   <div className="mt-auto space-y-4">
                     <div className="bg-black/20 p-3 rounded-lg border border-white/5 flex items-center justify-between">
-                      <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
-                        Invite Code
+                      <div className="flex flex-col">
+                        <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
+                          Invite Code
+                        </div>
+                        <button 
+                          onClick={() => copyToClipboard(event.invite_code)}
+                          className="flex items-center gap-2 text-sm font-mono text-purple-400 hover:text-purple-300 transition-colors mt-1"
+                        >
+                          {event.invite_code}
+                          {copiedCode === event.invite_code ? (
+                            <Check className="h-4 w-4 text-green-400" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => copyToClipboard(event.invite_code)}
-                        className="flex items-center gap-2 text-sm font-mono text-purple-400 hover:text-purple-300 transition-colors"
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 border border-white/10"
+                        onClick={() => setQrModalEvent(event)}
                       >
-                        {event.invite_code}
-                        {copiedCode === event.invite_code ? (
-                          <Check className="h-4 w-4 text-green-400" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </button>
+                        QR Code
+                      </Button>
                     </div>
                     
                     <div className="flex gap-2">
@@ -151,6 +163,15 @@ export default function DashboardPage() {
           fetchEvents(); // Instantly refresh the events list!
         }}
       />
+      
+      {qrModalEvent && (
+        <QRCodeModal
+          isOpen={!!qrModalEvent}
+          onClose={() => setQrModalEvent(null)}
+          inviteCode={qrModalEvent.invite_code}
+          eventName={qrModalEvent.title}
+        />
+      )}
     </div>
   );
 }

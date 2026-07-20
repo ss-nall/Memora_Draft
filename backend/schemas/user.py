@@ -6,22 +6,18 @@ import uuid
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str
-
-# Properties to receive via API on creation
-class UserCreate(UserBase):
-    password: str
+    profile_picture: Optional[str] = None
+    email_verified: Optional[str] = "false"
 
 # Properties to return to client
 class UserResponse(UserBase):
     id: uuid.UUID
+    google_id: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 # Token schemas
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
 class TokenPayload(BaseModel):
     sub: Optional[str] = None
+    type: Optional[str] = None

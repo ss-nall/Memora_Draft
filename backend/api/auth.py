@@ -1,129 +1,141 @@
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from starlette.requests import Request
-from authlib.integrations.starlette_client import OAuth, OAuthError
+from pydantic import BaseModel
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from datetime import datetime
 
 from core.database import get_db
-from core.security import verify_password, get_password_hash, create_access_token
+from core.security import create_access_token, create_refresh_token
 from core.config import settings
 from models.user import User
-from schemas.user import UserCreate, UserResponse, Token
+from models.refresh_token import RefreshToken
+from schemas.user import UserResponse
+from api.deps import get_current_user
 
 router = APIRouter()
 
-oauth = OAuth()
-oauth.register(
-    name='google',
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_id=settings.GOOGLE_CLIENT_ID,
-    client_secret=settings.GOOGLE_CLIENT_SECRET,
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
-)
+class GoogleLoginRequest(BaseModel):
+    token: str
 
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
 
-@router.post("/register", response_model=UserResponse)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
-    """
-    Register a new user.
-    """
-    user = db.query(User).filter(User.email == user_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system.",
-        )
-    user = User(
-        email=user_in.email,
-        hashed_password=get_password_hash(user_in.password),
-        full_name=user_in.full_name,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
-@router.post("/login", response_model=Token)
-def login_access_token(
-    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
-):
-    """
-    OAuth2 compatible token login, get an access token for future requests.
-    """
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return {
-        "access_token": create_access_token(
-            user.id, expires_delta=access_token_expires
-        ),
-        "token_type": "bearer",
-    }
+class RefreshResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
-@router.get("/google/login")
-async def google_login(request: Request):
+@router.post("/google/login", response_model=TokenResponse)
+def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
     """
-    Redirects the user to the Google consent screen.
-    """
-    # The URL that Google will redirect back to
-    redirect_uri = "http://localhost:8000/auth/google/callback"
-    return await oauth.google.authorize_redirect(request, redirect_uri)
-
-@router.get("/google/callback")
-async def google_callback(request: Request, db: Session = Depends(get_db)):
-    """
-    Handles the callback from Google, exchanges the code for a token,
-    fetches user info, and logs them in (or registers them).
+    Verifies the Google ID token sent by the frontend, creates or updates the user,
+    and issues JWT access & refresh tokens.
     """
     try:
-        token = await oauth.google.authorize_access_token(request)
-    except OAuthError as error:
-        raise HTTPException(status_code=400, detail=str(error.error))
-        
-    user_info = token.get('userinfo')
-    if not user_info:
-        raise HTTPException(status_code=400, detail="Failed to fetch user info from Google")
-        
-    email = user_info.get("email")
-    full_name = user_info.get("name")
-    
-    if not email:
-        raise HTTPException(status_code=400, detail="Email not provided by Google")
-        
-    user = db.query(User).filter(User.email == email).first()
-    
-    if not user:
-        # Create a new user if they don't exist
-        user = User(
-            email=email,
-            full_name=full_name,
-            hashed_password=None  # No password for OAuth users
+        # Verify the token with Google
+        id_info = id_token.verify_oauth2_token(
+            payload.token, 
+            requests.Request(), 
+            settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=60  # Allow up to 60 seconds of clock drift
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
         
-    # Generate our JWT token for the session
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        user.id, expires_delta=access_token_expires
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": {
-            "id": str(user.id),
-            "email": user.email,
-            "full_name": user.full_name
+        google_id = id_info.get("sub")
+        email = id_info.get("email")
+        full_name = id_info.get("name")
+        profile_picture = id_info.get("picture")
+        email_verified = str(id_info.get("email_verified", "false")).lower()
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="No email provided by Google")
+
+        # Find or create user
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            user = User(
+                google_id=google_id,
+                email=email,
+                full_name=full_name,
+                profile_picture=profile_picture,
+                email_verified=email_verified
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            # Update info if changed
+            user.google_id = google_id
+            user.profile_picture = profile_picture
+            db.commit()
+
+        # Create JWT tokens
+        access_token = create_access_token(user.id)
+        refresh_token_str = create_refresh_token(user.id)
+        
+        # Store refresh token in DB
+        import jwt
+        from core.security import ALGORITHM, settings as sec_settings
+        decoded_refresh = jwt.decode(refresh_token_str, sec_settings.SECRET_KEY, algorithms=[ALGORITHM])
+        expires_at = datetime.fromtimestamp(decoded_refresh["exp"])
+        
+        db_refresh_token = RefreshToken(
+            user_id=user.id,
+            token=refresh_token_str,
+            expires_at=expires_at
+        )
+        db.add(db_refresh_token)
+        db.commit()
+
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token_str,
+            "user": user
         }
-    }
+
+    except ValueError as e:
+        import logging
+        logging.error(f"Google Token Verification Failed: {e}")
+        raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
+
+@router.post("/refresh", response_model=RefreshResponse)
+def refresh_token(payload: RefreshRequest, db: Session = Depends(get_db)):
+    """
+    Issues a new access token if the refresh token is valid and not revoked.
+    """
+    db_token = db.query(RefreshToken).filter(
+        RefreshToken.token == payload.refresh_token,
+        RefreshToken.is_revoked == False
+    ).first()
+    
+    if not db_token:
+        raise HTTPException(status_code=401, detail="Invalid or revoked refresh token")
+        
+    if db_token.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+
+    access_token = create_access_token(db_token.user_id)
+    return {"access_token": access_token}
+
+@router.post("/logout")
+def logout(payload: RefreshRequest, db: Session = Depends(get_db)):
+    """
+    Invalidates the refresh token.
+    """
+    db_token = db.query(RefreshToken).filter(RefreshToken.token == payload.refresh_token).first()
+    if db_token:
+        db_token.is_revoked = True
+        db.commit()
+    return {"message": "Successfully logged out"}
+
+@router.get("/me", response_model=UserResponse)
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """
+    Returns the currently logged in user based on the Access Token.
+    """
+    return current_user

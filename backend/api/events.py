@@ -2,14 +2,15 @@ import uuid
 import secrets
 import string
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
 from models.event import Event
 from models.user import User
+from models.event_member import EventMember, EventRole
 from schemas.event import EventCreate, EventResponse, EventUpdate
-from api.deps import get_current_user
+from api.deps import get_current_user, require_event_role
 
 router = APIRouter()
 
@@ -26,9 +27,8 @@ def create_event(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """
-    Create a new event. The logged-in user becomes the photographer/organizer.
+    Create a new event. The logged-in user becomes the Event Admin.
     """
-    # Auto-generate a unique invite code
     invite_code = generate_invite_code()
     while db.query(Event).filter(Event.invite_code == invite_code).first() is not None:
         invite_code = generate_invite_code()
@@ -37,12 +37,21 @@ def create_event(
         title=event_in.title,
         date=event_in.date,
         description=event_in.description,
-        photographer_id=current_user.id,
         invite_code=invite_code
     )
     db.add(event)
     db.commit()
     db.refresh(event)
+
+    # Assign Admin role
+    member = EventMember(
+        event_id=event.id,
+        user_id=current_user.id,
+        role=EventRole.ADMIN
+    )
+    db.add(member)
+    db.commit()
+
     return event
 
 @router.put("/{event_id}", response_model=EventResponse)
@@ -51,16 +60,15 @@ def update_event(
     db: Session = Depends(get_db),
     event_id: uuid.UUID,
     event_in: EventUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_event_role([EventRole.ADMIN])),
 ) -> Any:
     """
-    Update an event.
+    Update an event (Admin only).
     """
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    if event.photographer_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
     if event_in.title is not None:
         event.title = event_in.title
     if event_in.date is not None:
@@ -79,9 +87,11 @@ def read_events(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """
-    Retrieve all events created by the current user.
+    Retrieve all events where the current user is a member (any role).
     """
-    events = db.query(Event).filter(Event.photographer_id == current_user.id).offset(skip).limit(limit).all()
+    memberships = db.query(EventMember).filter(EventMember.user_id == current_user.id).offset(skip).limit(limit).all()
+    event_ids = [m.event_id for m in memberships]
+    events = db.query(Event).filter(Event.id.in_(event_ids)).all()
     return events
 
 @router.get("/{event_id}", response_model=EventResponse)
@@ -89,14 +99,29 @@ def read_event(
     *,
     db: Session = Depends(get_db),
     event_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_event_role([EventRole.ADMIN, EventRole.CONTRIBUTOR, EventRole.USER])),
 ) -> Any:
     """
-    Get a specific event by ID.
+    Get a specific event by ID (must be a member).
     """
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    if event.photographer_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
     return event
+
+@router.delete("/{event_id}")
+def delete_event(
+    *,
+    db: Session = Depends(get_db),
+    event_id: uuid.UUID,
+    current_user: User = Depends(require_event_role([EventRole.ADMIN])),
+) -> Any:
+    """
+    Delete an event (Admin only).
+    """
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    db.delete(event)
+    db.commit()
+    return {"message": "Event deleted successfully"}

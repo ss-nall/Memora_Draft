@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Memora | Cinematic Memory AI</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-on-surface": "#f1f1f1",
+                      "glass-fill": "rgba(255, 255, 255, 0.7)",
+                      "tertiary": "#0059ba",
+                      "on-tertiary-fixed-variant": "#004491",
+                      "surface": "#f9f9f9",
+                      "surface-container": "#eeeeee",
+                      "surface-container-lowest": "#ffffff",
+                      "accent-gradient": "linear-gradient(135deg, #FF0000 0%, #FF6B6B 100%)",
+                      "primary-fixed": "#ffdad4",
+                      "surface-tint": "#c00100",
+                      "on-error-container": "#93000a",
+                      "on-error": "#ffffff",
+                      "surface-dim": "#dadada",
+                      "secondary-container": "#e2e2e2",
+                      "outline": "#956d67",
+                      "primary-fixed-dim": "#ffb4a8",
+                      "surface-container-highest": "#e2e2e2",
+                      "on-surface-variant": "#603e39",
+                      "surface-container-high": "#e8e8e8",
+                      "on-secondary": "#ffffff",
+                      "surface-bright": "#f9f9f9",
+                      "tertiary-fixed-dim": "#acc7ff",
+                      "outline-variant": "#ebbbb4",
+                      "background": "#f9f9f9",
+                      "surface-container-low": "#f3f3f3",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#930100",
+                      "surface-variant": "#e2e2e2",
+                      "primary": "#bc0100",
+                      "inverse-surface": "#2f3131",
+                      "on-surface": "#1a1c1c",
+                      "tertiary-container": "#0071e8",
+                      "on-secondary-fixed": "#1b1b1b",
+                      "on-primary-container": "#fffbff",
+                      "inverse-primary": "#ffb4a8",
+                      "secondary-fixed-dim": "#c6c6c6",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed-variant": "#474747",
+                      "primary-container": "#eb0000",
+                      "on-tertiary": "#ffffff",
+                      "on-background": "#1a1c1c",
+                      "secondary-fixed": "#e2e2e2",
+                      "on-tertiary-container": "#fefcff",
+                      "surface-subtle": "#FBFBFB",
+                      "soft-gradient": "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 100%)",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed": "#410000",
+                      "secondary": "#5e5e5e",
+                      "tertiary-fixed": "#d7e2ff",
+                      "on-secondary-container": "#646464",
+                      "on-tertiary-fixed": "#001a40",
+                      "surface-pure": "#FFFFFF"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin": "64px",
+                      "gutter": "24px",
+                      "xl": "64px",
+                      "sm": "12px",
+                      "xs": "4px",
+                      "base": "8px",
+                      "lg": "48px",
+                      "md": "24px",
+                      "xxl": "120px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "title-lg": ["Hanken Grotesk"],
+                      "label-caps": ["Inter"],
+                      "title-md": ["Hanken Grotesk"],
+                      "display-xl": ["Hanken Grotesk"],
+                      "body-md": ["Inter"]
+              },
+              "transitionTimingFunction": {
+                "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)"
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ease-out-expo {
+            transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .perspective-lg {
+            perspective: 2000px;
+        }
+        .floating-parallax {
+            animation: float 10s ease-in-out infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-40px) rotate(2deg); }
+        }
+
+        /* Scroll Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 800ms cubic-bezier(0.19, 1, 0.22, 1), transform 800ms cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal {
+                transition: none !important;
+                transform: none !important;
+                opacity: 1 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-xl border-b border-outline-variant/20 shadow-sm">
+<nav class="flex justify-between items-center h-20 px-margin max-w-[1440px] mx-auto">
+<div class="flex items-center gap-12">
+<a class="font-display-lg text-title-md tracking-tighter text-on-surface" href="#">Memora</a>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-primary font-semibold border-b-2 border-primary transition-all duration-300 ease-out-expo hover:opacity-80" href="#">Experience</a>
+<a class="font-body-md text-secondary hover:text-on-surface transition-all duration-300 ease-out-expo hover:opacity-80" href="#">The Gallery</a>
+<a class="font-body-md text-secondary hover:text-on-surface transition-all duration-300 ease-out-expo hover:opacity-80" href="#">Our Tech</a>
+<a class="font-body-md text-secondary hover:text-on-surface transition-all duration-300 ease-out-expo hover:opacity-80" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-secondary font-body-md hover:text-on-surface transition-all duration-300">Log In</button>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-full font-semibold transition-all duration-300 ease-out-expo hover:scale-[1.02] active:scale-95">Get Started</button>
+</div>
+</nav>
+</header>
+<!-- Hero Section -->
+<section class="relative h-screen w-full flex items-center justify-center overflow-hidden pt-20">
+<!-- Main Background Image -->
+<div class="absolute inset-0 z-0 overflow-hidden">
+<img class="w-full h-full object-cover scale-105 transform hover:scale-100 transition-transform duration-1000 ease-out-expo" data-alt="A cinematic, high-resolution lifestyle photograph of a family laughing together in a sun-drenched, airy modern living room. The light is warm and golden, creating a nostalgic yet high-end editorial feel. The composition is spacious with soft focus on the background, emphasizing a moment of pure joy and connection in a minimalist, light-themed luxury environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8KKeeaz84jbrPaDLUVKKlFKRzzVP4x-6qhwubFVtD-u4cjJeuopn7QwWRh7S6CqAyoZ0sEmRTawh9Cs__49A092-VPQrI98zFeVzTfN_kz2DRKL_uXhJtS6VkF0kBKiIDHHAnQzEuDtqtJk51AihW-9o-MCcUfhYNv9OtBk_QVqOaV1d04n3uSrxPuuUmiSDDJ3IYt5hv90srzt1Rr_JkjT68SbJ4NrK-OwuoCdZOvxeXI0sM7A5TnjrXsJbbqKBsxg_VvKOSshyY"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-surface"></div>
+</div>
+<!-- Content Overlay -->
+<div class="relative z-10 text-center max-w-4xl px-margin reveal">
+<h1 class="font-display-xl text-display-xl text-on-surface leading-tight mb-8">
+                Every detail, <br/> <span class="text-primary italic">exactly</span> as you felt it.
+            </h1>
+<p class="font-body-lg text-body-lg text-secondary mb-12 max-w-xl mx-auto">
+                Memora uses cinematic AI to upscale, restore, and organize your lifetime of memories into a living, breathing gallery.
+            </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+<button class="bg-on-surface text-surface-pure px-10 py-5 rounded-full font-semibold text-body-lg transition-all duration-300 ease-out-expo hover:scale-105 shadow-lg">Start Your Journey</button>
+<button class="flex items-center gap-3 text-on-surface font-semibold hover:gap-5 transition-all duration-300">
+<span class="material-symbols-outlined text-primary">play_circle</span>
+                    Watch the Story
+                </button>
+</div>
+</div>
+<!-- Floating Parallax Thumbnails -->
+<div class="absolute top-1/4 -left-12 w-48 h-64 rounded-2xl shadow-xl floating-parallax hidden xl:block" style="animation-delay: 0s;">
+<img class="w-full h-full object-cover rounded-2xl border-4 border-white/30" data-alt="A close-up, high-fashion portrait of an elderly woman with elegant features, her eyes sparkling with wisdom. The lighting is soft and flattering, highlighting the fine textures of her skin and silver hair. The style is clean, modern, and cinematic, emphasizing emotional depth and clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByrLEdqCEl_M4Eb13as3O-eTx0He_sUhWPJmzjpAB8yfkPTVyR40KIH7hrrUxk6EWxF4Bp-n0LNzGYYkmUJPDqfGyplK_naSjDW7RIJPCnkE5lpCO7gwnVFPYI95Xw07HkjicqjrSxPVeIZ_zr0tia05jvytsR1dSJpLiS0vxoicaL_E7w2mwQ8eOnNx9zVPDEPSof-WVUHL6oZf_kx7cnuzk0uB1CZv-d_RyMidmSuFzm4KYiYllr6lw0JtfIrr5dHIZWjvdwrUaW"/>
+</div>
+<div class="absolute bottom-1/4 -right-12 w-56 h-40 rounded-2xl shadow-xl floating-parallax hidden xl:block" style="animation-delay: -2s;">
+<img class="w-full h-full object-cover rounded-2xl border-4 border-white/30" data-alt="A candid, heartwarming shot of a young child's first steps on a pristine white beach. The ocean waves are blurred in the background under a bright, high-key sun. The colors are soft and saturated, leaning towards a premium, light-mode lifestyle aesthetic that evokes pure nostalgia." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhW0b9EokZnMYOA14UP5dO_KCuloX3EOAf7Em1kqPVexcU198KWrzW3Cyx2mdb8pxHP9s2YBA3f2xpc4q8C_ZIOtBwmiksKKaWAfabXhiw3koJx86zqVJE8IDqGr__Nbve-6509WV9ja8wfXDwffX_awQOjdUXjVwjflqQtzf2-iN1re8HDFdZli1IXXuNXRRwuJ2lMjoU6rRcBtjnNgA88kOW3sbR-CDQhKAhfFy4S-qYlXI9DHTeEHPB0nFQJrAhi7B7wab5LN2T"/>
+</div>
+<div class="absolute top-1/2 right-12 w-40 h-40 rounded-full shadow-xl floating-parallax hidden lg:block" style="animation-delay: -5s;">
+<img class="w-full h-full object-cover rounded-full border-4 border-white/30" data-alt="An artistic, macro shot of two hands intertwined, one young and one old. The image is captured with shallow depth of field, focusing on the texture and the emotional connection. The lighting is ethereal and bright, fitting a high-end minimalist design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoiNDCc_mzjx1NFU4NNcHxrhNZ187JKkRsSg4QKQUc30clb2oELXAODQzc21QvJWJBrzot8Dly4LcyI8r8ljc4acEIjeSIxchvqpcrShTrP3kqiU8doxh_CnPb90ktf2GFsRurV7OFAXOGKb1HYdXQiRnXKrID7EqxM25rBCqzfVx7GYTrXJoYoWHLh4oF_vMOn916EeV3KZ4CqCtZXFdNXi5KLEQ3p9gGDj-MFHwwLf0pECsKy3OqM1HBUKR7Ufm8l1OWPimDP4G-"/>
+</div>
+</section>
+<!-- Social Proof Strip -->
+<section class="py-md bg-surface-container-low border-y border-outline-variant/10 reveal">
+<div class="max-w-[1440px] mx-auto px-margin overflow-hidden">
+<div class="flex items-center justify-between gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
+<span class="font-display-lg text-title-md whitespace-nowrap">VOGUE</span>
+<span class="font-display-lg text-title-md whitespace-nowrap">The New York Times</span>
+<span class="font-display-lg text-title-md whitespace-nowrap">WIRED</span>
+<span class="font-display-lg text-title-md whitespace-nowrap">TechCrunch</span>
+<span class="font-display-lg text-title-md whitespace-nowrap">National Geographic</span>
+</div>
+</div>
+</section>
+<!-- Storytelling Section 1 -->
+<section class="py-xxl max-w-[1440px] mx-auto px-margin grid grid-cols-1 lg:grid-cols-2 gap-xxl items-center reveal">
+<div class="order-2 lg:order-1">
+<span class="font-label-caps text-label-caps text-primary tracking-[0.2em] mb-6 block uppercase reveal">Restoration</span>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-8 reveal">Bring the past into the present.</h2>
+<p class="font-body-lg text-body-lg text-secondary leading-relaxed mb-10 reveal">
+                Old photographs are more than just paper; they are windows into our heritage. Our proprietary NeuralMatch™ technology repairs fading, corrects light, and enhances resolution up to 8K, ensuring your family's history remains as vivid as your future.
+            </p>
+<ul class="space-y-6">
+<li class="flex items-start gap-4 reveal">
+<span class="material-symbols-outlined text-primary mt-1">auto_awesome</span>
+<div>
+<h4 class="font-semibold text-on-surface">Automatic Color Grading</h4>
+<p class="text-secondary">AI-driven color correction that respects the original film stock aesthetics.</p>
+</div>
+</li>
+<li class="flex items-start gap-4 reveal">
+<span class="material-symbols-outlined text-primary mt-1">high_res</span>
+<div>
+<h4 class="font-semibold text-on-surface">Ultra-HD Upscaling</h4>
+<p class="text-secondary">Transform low-res digital scans into crisp, printable masterpieces.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="order-1 lg:order-2 group reveal">
+<div class="relative rounded-3xl overflow-hidden shadow-2xl transition-transform duration-700 ease-out-expo group-hover:scale-[1.02]">
+<img class="w-full aspect-[4/5] object-cover" data-alt="A split-screen comparison shot. The left side shows a grainy, sepia-toned vintage photo of a 1950s wedding, worn and faded. The right side shows the same photo perfectly restored with vibrant, natural colors, sharp details, and clean textures. The image embodies professional restoration services in a cinematic, minimalist style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8lpCV7LXht2MOv3pCSOpzMsE4XFkdJgo2IbxpgvaXIX33FAXJv0EnukMBtsZbNaaOVkTR9bMm4xj_aufbZvamCStuL_M0ihJ51EQn3ORodu62pUnoOL-2x_3k4hAxHzlBEayHlizqBeNn4XlOt8so8xym39lB4jjVxFSzwrNLV7fV1O-v9Oz2LaWIaDeC6cN95VkTOpiR7KhydgMygL5555-xyynvBNxKWVBN08qSAU3M-37IEUrUWGDSE0l2Vzajt5r0_NISKG0Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+</div>
+</div>
+</section>
+<!-- AI Face-Matching Demo (Interactive Placeholder) -->
+<section class="bg-surface-subtle py-xxl reveal">
+<div class="max-w-[1440px] mx-auto px-margin text-center mb-16">
+<span class="font-label-caps text-label-caps text-primary tracking-[0.2em] mb-6 block uppercase reveal">Discovery</span>
+<h2 class="font-display-lg text-display-lg text-on-surface reveal">Reconnect across generations.</h2>
+</div>
+<div class="max-w-5xl mx-auto px-margin">
+<div class="relative bg-white rounded-[40px] p-8 shadow-xl border border-outline-variant/10 flex flex-col md:flex-row gap-8 items-center justify-between reveal">
+<!-- Person A -->
+<div class="flex-1 text-center reveal">
+<div class="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-primary-container mb-6">
+<img class="w-full h-full object-cover" data-alt="A vintage, grainy black and white portrait of a young man from the 1940s, dressed in a classic suit. He has a warm smile and a distinctive jawline. The image has an authentic antique feel but is framed beautifully within a modern UI element." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrE40-FFetq41XdBQFRSAL7ATqKgwQubriKs9mTLqaGvxTl47HJrAxX0o00B2yrYOVupqFqLFiRdhTkmAyfLyucfKkiqIBjicRySHbIayW3Ds_1Pi5hvN5LBABGS5EiovMwg7UCWJ4fGvAW3PEQ59HJB9yKEi3UsUMarQVfHa1ZG5Sx2LRy6D5a8ahhM-vYEphVwG84yYkq_0z9hH8mJXfuOC3PS3wVtI2GN_vBlUK-IPSO-RBuCJJw85ucDbdghwssvtlbHWIobU3"/>
+</div>
+<p class="font-semibold text-on-surface">Arthur Vance, 1944</p>
+<p class="text-secondary text-sm">Great Grandfather</p>
+</div>
+<!-- Match Indicator -->
+<div class="flex flex-col items-center gap-2 reveal">
+<div class="px-6 py-2 bg-primary text-on-primary rounded-full font-bold text-sm">98.4% Match</div>
+<div class="h-px w-24 md:w-32 bg-outline-variant/30 hidden md:block"></div>
+<span class="material-symbols-outlined text-primary text-4xl">neurology</span>
+</div>
+<!-- Person B -->
+<div class="flex-1 text-center reveal">
+<div class="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-surface-container-high mb-6">
+<img class="w-full h-full object-cover" data-alt="A modern, high-resolution portrait of a young man in his late 20s, with a clean-cut look and a similar facial structure to the vintage portrait. He is looking into the camera with a subtle, confident smile. Lighting is bright, airy, and high-end professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsVihRenbD9nTKMpkafvnvLqkjL6h43d5s1tdt8QZuShiEHGIFsocz5k_8dxL2rOMpa7UuqGlAOsFvOfChvS3XowbWgylcK9P8E6Og2KEq6G9sdIMDz0fOlWuxSteERNshEOHwu8B-P0uOBcUNf94GkU5KJrhJyGBgC6V11POjIuZzQGwTwFux_qJPH-mDniyezPNVIXIB7GLqRDQOHnxk10f70ARllrG_bPzYirmGG7_4RrejHkRlmF1HXWqTEPGeLZ7WnitPINWr"/>
+</div>
+<p class="font-semibold text-on-surface">Liam Vance, 2024</p>
+<p class="text-secondary text-sm">Great Grandson</p>
+</div>
+</div>
+<p class="text-center mt-12 text-secondary max-w-2xl mx-auto reveal">
+                Memora's AI identifies family resemblances across decades, grouping your ancestors with their modern-day descendants automatically.
+            </p>
+</div>
+</section>
+<!-- Process Timeline -->
+<section class="py-xxl max-w-[1440px] mx-auto px-margin reveal">
+<div class="text-center mb-24 reveal">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-4">The path to forever.</h2>
+<p class="text-secondary">Three simple steps to secure your legacy.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16 relative">
+<!-- Connecting Line (Desktop) -->
+<div class="absolute top-1/4 left-0 w-full h-px bg-outline-variant/20 hidden md:block z-0"></div>
+<!-- Step 1 -->
+<div class="relative z-10 flex flex-col items-center text-center reveal">
+<div class="w-20 h-20 bg-white rounded-2xl shadow-lg border border-outline-variant/10 flex items-center justify-center mb-8 transform hover:rotate-3 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">upload_file</span>
+</div>
+<h3 class="font-title-md text-title-md mb-4">Ingest</h3>
+<p class="text-secondary">Upload raw files, cloud links, or high-res scans. We handle all formats.</p>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center text-center reveal">
+<div class="w-20 h-20 bg-primary text-on-primary rounded-2xl shadow-lg flex items-center justify-center mb-8 transform hover:-rotate-3 transition-transform">
+<span class="material-symbols-outlined text-white text-3xl">magic_button</span>
+</div>
+<h3 class="font-title-md text-title-md mb-4">Enhance</h3>
+<p class="text-secondary">Our cinematic AI engine repairs, upscales, and tags every face and location.</p>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center text-center reveal">
+<div class="w-20 h-20 bg-white rounded-2xl shadow-lg border border-outline-variant/10 flex items-center justify-center mb-8 transform hover:rotate-3 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">auto_awesome_motion</span>
+</div>
+<h3 class="font-title-md text-title-md mb-4">Experience</h3>
+<p class="text-secondary">Access your curated life story on any device, or order custom cinematic prints.</p>
+</div>
+</div>
+</section>
+<!-- Pricing Cards -->
+<section class="py-xxl bg-surface-container reveal">
+<div class="max-w-[1440px] mx-auto px-margin">
+<div class="text-center mb-16 reveal">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-4">A plan for every legacy.</h2>
+<p class="text-secondary">Simple, transparent pricing. No hidden fees.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Basic -->
+<div class="bg-surface-pure p-10 rounded-[24px] border border-outline-variant/10 flex flex-col hover:shadow-2xl transition-all duration-500 ease-out-expo group reveal">
+<h3 class="text-title-md mb-2">Curator</h3>
+<p class="text-secondary mb-8">For personal collections.</p>
+<div class="mb-10">
+<span class="text-4xl font-bold">$12</span>
+<span class="text-secondary">/mo</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">check</span> 500 Memory Limit</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">check</span> AI Face Recognition</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">check</span> 4K Restoration</li>
+</ul>
+<button class="w-full py-4 border border-outline-variant rounded-full font-semibold hover:bg-on-surface hover:text-white transition-colors">Select Plan</button>
+</div>
+<!-- Pro (Featured) -->
+<div class="bg-on-surface p-10 rounded-[24px] shadow-2xl flex flex-col transform md:-translate-y-4 relative group reveal">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Most Popular</div>
+<h3 class="text-title-md text-white mb-2">Historian</h3>
+<p class="text-white/60 mb-8">For families and large archives.</p>
+<div class="mb-10">
+<span class="text-4xl font-bold text-white">$29</span>
+<span class="text-white/60">/mo</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow text-white">
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-white text-sm">check</span> Unlimited Memories</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-white text-sm">check</span> 8K Restoration Engine</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-white text-sm">check</span> Collaborative Albums</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-white text-sm">check</span> Cinematic Video Motion</li>
+</ul>
+<button class="w-full py-4 bg-primary text-white rounded-full font-semibold hover:opacity-90 transition-opacity">Get Started</button>
+</div>
+<!-- Enterprise -->
+<div class="bg-surface-pure p-10 rounded-[24px] border border-outline-variant/10 flex flex-col hover:shadow-2xl transition-all duration-500 ease-out-expo group reveal">
+<h3 class="text-title-md mb-2">Archivist</h3>
+<p class="text-secondary mb-8">For institutions and estates.</p>
+<div class="mb-10">
+<span class="text-4xl font-bold">$99</span>
+<span class="text-secondary">/mo</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">check</span> White-glove scanning service</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">check</span> Priority AI Processing</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">check</span> Custom API Access</li>
+</ul>
+<button class="w-full py-4 border border-outline-variant rounded-full font-semibold hover:bg-on-surface hover:text-white transition-colors">Contact Sales</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Closing CTA -->
+<section class="relative h-[819px] w-full flex items-center justify-center overflow-hidden reveal">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover" data-alt="A profound, wide-angle cinematic shot of an elderly couple holding hands, walking into a soft, sunset-lit horizon on a rolling green hill. The lighting is low and dramatic with long shadows and warm flares. The entire scene feels peaceful, timeless, and deeply emotional, emphasizing the concept of legacy and the passage of time." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbT9i8VymR3MbfklvtExWWt5ng_fe2QlY8ztJHml9Drtkvrrp-g78G66fx2bSqxlpA-lbC7xOGB4VRPlEqA5kcO09dGUBVQYOGfwSE8Z-B_6MU43Fw1zvXzZ2Z3r49VhpBKOYMij7rNiEjq112szWSANRTSv99wIVNRVFdvCdn5Ye-L9A-Jp_0L5fKcftM0aYk127Bit5Iv6Ga9ByH3lBAs-pJHaX1GVK6vVwceCPffF9SxzppZ66xcnK_Y8NgX7VZVjLOi4JZ7yj6"/>
+<div class="absolute inset-0 bg-black/40"></div>
+</div>
+<div class="relative z-10 text-center max-w-3xl px-margin text-white reveal">
+<h2 class="font-display-xl text-display-xl mb-8 reveal">Don't let them fade.</h2>
+<p class="font-body-lg text-body-lg mb-12 opacity-90 reveal">
+                Preserve your family's story with the world's most advanced cinematic AI. Start your 14-day free trial today.
+            </p>
+<button class="bg-white text-on-surface px-12 py-6 rounded-full font-bold text-xl transition-all duration-500 hover:scale-110 hover:shadow-2xl">Create My Gallery</button>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-surface-subtle border-t border-outline-variant/10 w-full py-xxl reveal">
+<div class="max-w-[1440px] mx-auto px-margin flex flex-col items-center gap-md">
+<a class="font-display-lg text-title-md text-on-surface reveal" href="#">Memora</a>
+<div class="flex flex-wrap justify-center gap-8 reveal">
+<a class="text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Privacy Policy</a>
+<a class="text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Terms of Service</a>
+<a class="text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Cookie Settings</a>
+<a class="text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Press Kit</a>
+</div>
+<p class="text-secondary font-body-md text-center mt-8 reveal">© 2024 Memora Cinematic. All rights reserved.</p>
+</div>
+</footer>
+<!-- Interactive Scripts for Micro-interactions and Scroll Reveal -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // IntersectionObserver for Scroll Reveal
+            const revealOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, revealOptions);
+
+            document.querySelectorAll('.reveal').forEach(el => {
+                revealObserver.observe(el);
+            });
+
+            // Parallax effect on scroll
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const parallaxImages = document.querySelectorAll('.floating-parallax');
+                parallaxImages.forEach((img, index) => {
+                    const speed = (index + 1) * 0.1;
+                    img.style.transform = `translateY(${scrolled * speed}px)`;
+                });
+            });
+        });
+    </script>
+</body></html>

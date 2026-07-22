@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Notifications — Memora</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Hanken Grotesk & Inter Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        /* Custom Bezier & Transitions */
+        .ease-out-expo {
+            transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .notification-line::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: -40px;
+            width: 1px;
+            background: linear-gradient(to bottom, #e2e2e2 0%, #e2e2e2 80%, transparent 100%);
+            z-index: 0;
+        }
+
+        .notification-line-last::before {
+            display: none;
+        }
+
+        .soft-glow-unread {
+            box-shadow: 0 0 12px 2px rgba(188, 1, 0, 0.15);
+        }
+
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scroll-reveal {
+            animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#c6c6c6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#e2e2e2",
+                        "error": "#ba1a1a",
+                        "on-surface": "#1a1c1c",
+                        "tertiary-fixed": "#d7e2ff",
+                        "tertiary-container": "#0071e8",
+                        "on-tertiary-fixed": "#001a40",
+                        "surface-container-highest": "#e2e2e2",
+                        "surface-pure": "#FFFFFF",
+                        "surface-bright": "#f9f9f9",
+                        "on-secondary-fixed": "#1b1b1b",
+                        "on-primary-container": "#fffbff",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-error": "#ffffff",
+                        "primary-container": "#eb0000",
+                        "outline-variant": "#ebbbb4",
+                        "outline": "#956d67",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004491",
+                        "on-background": "#1a1c1c",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "glass-fill": "rgba(255, 255, 255, 0.7)",
+                        "on-secondary-container": "#646464",
+                        "surface-container-low": "#f3f3f3",
+                        "tertiary": "#0059ba",
+                        "inverse-primary": "#ffb4a8",
+                        "on-tertiary-container": "#fefcff",
+                        "accent-gradient": "linear-gradient(135deg, #FF0000 0%, #FF6B6B 100%)",
+                        "on-error-container": "#93000a",
+                        "soft-gradient": "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 100%)",
+                        "on-primary-fixed-variant": "#930100",
+                        "surface-dim": "#dadada",
+                        "surface": "#f9f9f9",
+                        "on-surface-variant": "#603e39",
+                        "surface-variant": "#e2e2e2",
+                        "secondary-container": "#e2e2e2",
+                        "on-primary-fixed": "#410000",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-container": "#eeeeee",
+                        "inverse-surface": "#2f3131",
+                        "inverse-on-surface": "#f1f1f1",
+                        "background": "#f9f9f9",
+                        "surface-subtle": "#FBFBFB",
+                        "secondary": "#5e5e5e",
+                        "primary-fixed": "#ffdad4",
+                        "surface-tint": "#c00100",
+                        "tertiary-fixed-dim": "#acc7ff",
+                        "on-secondary-fixed-variant": "#474747",
+                        "primary": "#bc0100"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "xxl": "24px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "xxl": "120px",
+                        "margin": "64px",
+                        "md": "24px",
+                        "xl": "64px",
+                        "lg": "48px"
+                    },
+                    "fontFamily": {
+                        "title-lg": ["Hanken Grotesk"],
+                        "display-xl": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "title-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "title-lg": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["17px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "title-md": ["28px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["15px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-glass-fill/70 backdrop-blur-xl border-b border-white/20 shadow-sm h-20">
+<div class="flex justify-between items-center h-full px-margin max-w-[1440px] mx-auto">
+<div class="flex items-center gap-base">
+<span class="font-display-lg text-title-md tracking-tighter text-on-surface">Memora</span>
+</div>
+<div class="hidden md:flex items-center gap-lg">
+<a class="text-secondary hover:text-on-surface transition-colors font-body-md" href="#">Gallery</a>
+<a class="text-secondary hover:text-on-surface transition-colors font-body-md" href="#">Journey</a>
+<a class="text-secondary hover:text-on-surface transition-colors font-body-md" href="#">Timeline</a>
+<a class="text-secondary hover:text-on-surface transition-colors font-body-md" href="#">Pricing</a>
+</div>
+<div class="flex items-center gap-gutter">
+<button class="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer" data-icon="search">search</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young male creative with a warm smile, wearing a minimalist black turtleneck. High-end editorial lighting, soft shadows, and a clean white background. Premium cinematic look consistent with the Memora brand aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDS_QHp1ZojBwU1OKEkzaOvb-p39jwZnDnzSb4t8nBR33miZ1DdJycQxc2i5oo84Vdv4lLUkfikI6TmSpXN_9LKOauGq0qC-onDd4ppzZW1gTotyrgymd9TLWkWtXqr_2e2Zpq-XJNuX7kt52FopIoVSEawFTW3vn07xOzUFlRS4HgLkjICa8qHz7pxX54C8qjQYEvuZXhyGFv5vIa3c6Dp90czWnY66-4NT2fC_-fKDBPNqs21GAgNokjmgnybHi5pit5CbluyaMth"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Side Navigation Shell (Hidden on Mobile) -->
+<aside class="hidden xl:flex h-screen w-64 fixed left-0 top-0 flex-col p-gutter gap-base bg-surface-pure border-r border-surface-container mt-20">
+<div class="mb-lg px-base">
+<h3 class="font-title-md text-primary tracking-tight">Alex Rivera</h3>
+<p class="text-secondary font-label-caps uppercase tracking-widest text-[10px]">Premium Plan</p>
+</div>
+<nav class="flex flex-col gap-xs">
+<a class="flex items-center gap-sm p-sm text-primary font-bold bg-secondary-container rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-body-md">Updates</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-secondary font-medium hover:bg-surface-container hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="photo_library">photo_library</span>
+<span class="font-body-md">Memories</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-secondary font-medium hover:bg-surface-container hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome_motion">auto_awesome_motion</span>
+<span class="font-body-md">Collections</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-secondary font-medium hover:bg-surface-container hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md">Shared</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-secondary font-medium hover:bg-surface-container hover:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-body-md">AI Assistant</span>
+</a>
+</nav>
+<div class="mt-auto p-base">
+<button class="w-full py-base bg-on-surface text-surface-pure rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" data-icon="upload">upload</span>
+                Upload Media
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-[120px] pb-xxl px-gutter md:px-margin xl:ml-64 max-w-[1200px]">
+<!-- Header Section -->
+<header class="mb-xl scroll-reveal" style="animation-delay: 0.1s;">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-base">
+<div>
+<span class="text-primary font-label-caps tracking-[0.2em] uppercase text-[12px] mb-xs block">Activity Feed</span>
+<h1 class="font-title-lg text-display-lg text-on-surface">Notifications — Memora</h1>
+</div>
+<div class="flex gap-sm">
+<button class="px-gutter py-base rounded-full border border-outline-variant text-secondary font-semibold text-body-md hover:bg-surface-container-low transition-colors">Mark all as read</button>
+<button class="px-gutter py-base rounded-full bg-surface-container-highest text-on-surface font-semibold text-body-md hover:bg-surface-container transition-colors">Settings</button>
+</div>
+</div>
+</header>
+<!-- Timeline Container -->
+<section class="space-y-xxl relative">
+<!-- Event Group 1: AI Memory Discover -->
+<div class="relative notification-line scroll-reveal" style="animation-delay: 0.2s;">
+<div class="flex gap-lg items-start relative z-10">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center soft-glow-unread">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="flex-grow">
+<div class="mb-sm">
+<span class="text-secondary font-label-caps text-label-caps">Today, 10:24 AM</span>
+<h2 class="font-title-md text-on-surface mt-xs">AI found 12 new photos of you in Tuscany</h2>
+<p class="text-secondary font-body-md max-w-2xl mt-base">Based on facial recognition and location metadata, Memora identified a lost roll from Summer 2022. The lighting in these captures is extraordinary.</p>
+</div>
+<!-- Photography Preview Card -->
+<div class="mt-md group relative overflow-hidden rounded-xxl aspect-[16/9] md:aspect-[21/9] border border-white/40 shadow-sm transition-all duration-700 hover:scale-[1.01]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" data-alt="A cinematic wide shot of a sun-drenched Tuscan vineyard at golden hour. Rolling green hills meet a hazy orange horizon, with a rustic stone villa nestled among tall cypress trees. The aesthetic is warm, airy, and high-key, reminiscent of professional travel photography. Vibrant yet natural colors." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDO3VkNVC9ojWGhsVox8kbsHJdtpoWhk8ExKtbZ8w2De3TSG9BKX5YuKLI52TIb6ogctT2MP6Lea1D5IMVmT7jX5fL9rLElh1pEepHF5rQPkBEg0BOxy01Y-5pkwUiZnzEWGySqSrg7CSe9i5uAzzHM2tDpD_m6YJ5VPLKVmEXr33K4jtPjxBP-t40I5RVQCCeBX6mbte37DqlZxEdQG4RFRqlMyWw-bkEprUnIt7enkz1nzqqAvz-j-e8GmKyNn7mMuTnxwDE63zCn')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="absolute bottom-base left-base right-base flex justify-between items-end p-gutter opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
+<div class="text-white">
+<p class="font-title-md text-white">The Golden Hour Sessions</p>
+<p class="font-label-caps opacity-80">Val d'Orcia, Italy</p>
+</div>
+<button class="px-gutter py-sm glass-panel rounded-full text-on-surface font-semibold hover:bg-white transition-colors">View Collection</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Event Group 2: Shared Collection -->
+<div class="relative notification-line scroll-reveal" style="animation-delay: 0.3s;">
+<div class="flex gap-lg items-start relative z-10">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-tertiary-container text-on-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="group_add">group_add</span>
+</div>
+<div class="flex-grow">
+<div class="mb-sm">
+<span class="text-secondary font-label-caps text-label-caps">Yesterday</span>
+<h2 class="font-title-md text-on-surface mt-xs">Elena invited you to "Pacific Coast Roadtrip"</h2>
+<p class="text-secondary font-body-md max-w-2xl mt-base">48 high-resolution memories have been added. AI has generated a cinematic recap for this collection.</p>
+</div>
+<div class="mt-md flex flex-wrap gap-md">
+<!-- Mini Grid Previews -->
+<div class="w-32 h-44 rounded-xxl overflow-hidden border border-surface-container hover:shadow-lg transition-all duration-500 hover:-translate-y-1">
+<img class="w-full h-full object-cover" data-alt="A vertical close-up photograph of sea spray crashing against dark jagged cliffs in Big Sur. Moody blue and gray tones, misty atmosphere, high-contrast black and white photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkHAhVWt5fvc5rue993MlyOwxYypFQCl7_1YxjarcsLh4QsWuwiMLXD9zs6SCHC-DH2bu5KyfvflaRiieZIkNbILSobf169uui43DfAzcq6uAUWB21d0tyjKuNMqq_Cg-OSWJaA0WpBSkBElj-YxSreVlY5TCUhPRP5KPi-xciMYAhZoqRR7_1QIGhImCjNPIErKgWyeXjDeLBkBiY8KMXEAKYBsQu9uR97Bp47uj-EHMZrP_rpEMTH1jmVUH5V1Ob8QzNvkavt9EB"/>
+</div>
+<div class="w-32 h-44 rounded-xxl overflow-hidden border border-surface-container hover:shadow-lg transition-all duration-500 hover:-translate-y-1 delay-75">
+<img class="w-full h-full object-cover" data-alt="A vertical shot through a vintage car window showing a winding coastal road. Reflections of redwood trees in the glass, warm film grain aesthetic, nostalgic 70s travel vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxkaDaxK_FZtn-gIRR8KJvR0FOjm685YZmFa_5AOP3q_r1vPs0ZoDKKfx03Jdgy7WU_XUYdUk_5jEEDc7quoYLvKVLvxwaQQ5EAs0VZvRUAu6tXSf4V2epYcSpki5suPxGahxm_xxtE64A5h8Sf7lteXEvM0gXfMSJFy2OyQWbZmwW0MI0GjkXIerEgNv37IGLXeVdGBsyhbVAn6HjqZUH6oJ4mcKATF0g_Bc_KdXLgEQC6cO-0chp0VQo9_DlXXG05GbopXJq4UF3"/>
+</div>
+<div class="w-32 h-44 rounded-xxl overflow-hidden border border-surface-container hover:shadow-lg transition-all duration-500 hover:-translate-y-1 delay-150">
+<img class="w-full h-full object-cover" data-alt="A vertical minimalist shot of a single orange lighthouse against a foggy white sky. Symmetrical composition, clean lines, serene and editorial mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuy11QTaNqCHynWkOMmKUlKIiPbZThe25v7Z7MjyVhHs0TRqm2iJ1RZo1agcZlmxaBfO-Ogw0hqFhEN1hFVTbocE16u0idlL-ojLRmj-aNku8YqrGUth58pPmp_YL0Gie_WFOn_W27qh350hqyOdYdM3TNzwJtnAaWFtknH2IgC6knDqzf0ofpw-8AOIsG-0oaiOBNpzsyduxtGy2K5ZmT34_ANYqhNQpwPTQeCKVkuHsP2Dn4SldMxscqtUBBO9jzz32sCnJmJnY3"/>
+</div>
+<button class="w-32 h-44 rounded-xxl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-secondary hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-[32px] group-hover:scale-110 transition-transform" data-icon="add_circle">add_circle</span>
+<span class="font-label-caps mt-xs">+45 more</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Event Group 3: Memory Anniversary -->
+<div class="relative notification-line-last scroll-reveal" style="animation-delay: 0.4s;">
+<div class="flex gap-lg items-start relative z-10">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</div>
+<div class="flex-grow">
+<div class="mb-sm">
+<span class="text-secondary font-label-caps text-label-caps">3 Days Ago</span>
+<h2 class="font-title-md text-on-surface mt-xs">One Year Ago: The Alpine Summit</h2>
+<p class="text-secondary font-body-md max-w-2xl mt-base">Relive the crisp air and the feeling of accomplishment. Memora has color-graded your favorites from this day for a professional finish.</p>
+</div>
+<!-- High Impact Single Image -->
+<div class="mt-md glass-panel p-base rounded-xxl">
+<div class="rounded-[16px] overflow-hidden aspect-square md:aspect-video relative group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A breathtaking panoramic view from a snowy mountain peak above the clouds. Bright white snow, deep blue sky, and sharp rocky outcroppings. Dramatic lighting with long shadows, ultra-high resolution, cinematic mountain landscape photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxsrz7iAq2lHY3CI85V1LORenOQa32SHNsr-iWducfay-fkrYeffNpaYslIOQe5BKUzE3WjBzbehVKldpDJyurzDF5QA2zNLmgrk-VKI6oht9crQAJh0-bRRYQyrdo3CoRN8r7IRiZdVTVXuNeC4xFIzQYfZB7ckpL-nIytvbcKmhL43pEiIUZgDUeaWc4T5CDZVY7amB00rb6bUcYWEvnULvfa2FKnlOHj0pLCKAVmXRKvoCqqtIdD9l4Vco7JtQ8jaexT51bF2B4"/>
+<div class="absolute top-gutter right-gutter">
+<span class="px-sm py-xs bg-black/40 backdrop-blur-md text-white rounded-full font-label-caps text-[10px] tracking-widest uppercase">Anniversary</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Load More Section -->
+<div class="mt-xxl flex justify-center scroll-reveal" style="animation-delay: 0.5s;">
+<button class="flex items-center gap-sm text-secondary font-semibold hover:text-primary transition-colors py-base px-xl border border-outline-variant rounded-full">
+<span>Show Older History</span>
+<span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="bg-surface-pure border-t border-surface-variant w-full py-xxl mt-xxl relative z-10">
+<div class="flex flex-col items-center justify-center gap-lg max-w-[1440px] mx-auto px-margin">
+<span class="font-display-lg text-title-md text-on-surface">Memora</span>
+<div class="flex flex-wrap justify-center gap-xl">
+<a class="text-secondary hover:text-primary transition-colors font-label-caps uppercase tracking-widest text-[11px]" href="#">Privacy</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-caps uppercase tracking-widest text-[11px]" href="#">Terms</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-caps uppercase tracking-widest text-[11px]" href="#">Archive</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-caps uppercase tracking-widest text-[11px]" href="#">Support</a>
+</div>
+<p class="text-secondary font-label-caps text-[10px] opacity-60">© 2024 Memora AI. Captured in high definition.</p>
+</div>
+</footer>
+<!-- Mobile Navigation Shell -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-glass-fill/90 backdrop-blur-xl border-t border-white/20 z-[60] flex items-center justify-around px-gutter">
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined" data-icon="photo_library">photo_library</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined" data-icon="auto_awesome_motion">auto_awesome_motion</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-primary bg-secondary-container p-sm rounded-full -mt-10 soft-glow-unread">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<script>
+        // Intersection Observer for Scroll Reveal Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Hover effect for the SideNav items
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('mouseenter', () => {
+                if (!link.classList.contains('text-primary')) {
+                    link.style.transform = 'translateX(4px)';
+                }
+            });
+            link.addEventListener('mouseleave', () => {
+                link.style.transform = 'translateX(0px)';
+            });
+        });
+    </script>
+</body></html>

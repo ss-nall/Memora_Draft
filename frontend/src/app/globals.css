@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: #bc0100;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #eb0000;
+  --color-on-primary-container: #fffbff;
+  --color-primary-fixed: #ffdad4;
+  --color-primary-fixed-dim: #ffb4a8;
+  --color-on-primary-fixed: #410000;
+  --color-on-primary-fixed-variant: #930100;
+  
+  --color-secondary: #5e5e5e;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e2e2e2;
+  --color-on-secondary-container: #646464;
+  
+  --color-tertiary: #0059ba;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #0071e8;
+  --color-on-tertiary-container: #fefcff;
+  --color-tertiary-fixed: #d7e2ff;
+  --color-tertiary-fixed-dim: #acc7ff;
+  --color-on-tertiary-fixed: #001a40;
+  --color-on-tertiary-fixed-variant: #004491;
+
+  --color-surface: #f9f9f9;
+  --color-on-surface: #1a1c1c;
+  --color-surface-variant: #e2e2e2;
+  --color-on-surface-variant: #603e39;
+  --color-inverse-surface: #2f3131;
+  --color-inverse-on-surface: #f1f1f1;
+
+  --color-surface-dim: #dadada;
+  --color-surface-bright: #f9f9f9;
+  --color-surface-pure: #ffffff;
+  --color-surface-subtle: #fbfbfb;
+  
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f3f3;
+  --color-surface-container: #eeeeee;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #e2e2e2;
+
+  --color-outline: #956d67;
+  --color-outline-variant: #ebbbb4;
+  --color-glass-fill: rgba(255, 255, 255, 0.7);
+
+  --font-display-xl: var(--font-hanken-grotesk);
+  --font-display-lg: var(--font-hanken-grotesk);
+  --font-title-lg: var(--font-hanken-grotesk);
+  --font-title-md: var(--font-hanken-grotesk);
+  --font-body-lg: var(--font-inter);
+  --font-body-md: var(--font-inter);
+  --font-label-caps: var(--font-inter);
+}
+
+:root {
+  --background: #f9f9f9;
+  --foreground: #1a1c1c;
+  --font-hanken-grotesk: 'Hanken Grotesk', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  min-height: 100vh;
+}
+
+/* Material Symbols Outlined Custom Configuration */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Custom transitions and animations */
+.ease-out-expo {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.perspective-lg {
+  perspective: 2000px;
+}
+
+/* Floating Parallax thumbnail animations */
+.floating-parallax {
+  animation: float-parallax-anim 10s ease-in-out infinite alternate;
+}
+
+@keyframes float-parallax-anim {
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-40px) rotate(2deg); }
+}
+
+/* Scroll reveal animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 800ms cubic-bezier(0.19, 1, 0.22, 1), transform 800ms cubic-bezier(0.19, 1, 0.22, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Face Mesh Scan animations */
+@keyframes scan-anim {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+.scan-line {
+  animation: scan-anim 3s linear infinite;
+  background: linear-gradient(180deg, transparent, rgba(188, 1, 0, 0.4), transparent);
+}
+
+/* Particles float */
+.memory-particle {
+  animation: float-anim 8s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes float-anim {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+  50% { transform: translateY(-40px) rotate(10deg); opacity: 0.6; }
+}
+
+/* Shimmer Progress */
+.progress-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer-anim 2s infinite linear;
+}
+
+@keyframes shimmer-anim {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Success Photo Burst */
+@keyframes burstFadeIn-anim {
+  from { opacity: 0; scale: 0.8; }
+  to { opacity: 1; scale: 1; }
+}
+
+.photo-burst-active {
+  animation: burstFadeIn-anim 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  transform: scale(1.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hide scrollbars for clean look */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E5E5E5;
+  border-radius: 10px;
+}
+
+/* Timeline connectors */
+.notification-line::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  bottom: -40px;
+  width: 1px;
+  background: linear-gradient(to bottom, #e2e2e2 0%, #e2e2e2 80%, transparent 100%);
+  z-index: 0;
+}
+
+.notification-line-last::before {
+  display: none;
+}
+
+.soft-glow-unread {
+  box-shadow: 0 0 12px 2px rgba(188, 1, 0, 0.15);
+}
+
+.timeline-line::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #ebbbb4;
+  transform: translateX(-50%);
+}
+
+.moment-dot::after {
+  content: '';
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 16px;
+  background: currentColor;
+  opacity: 0.2;
+}
+
+/* Scroll reveals animation helper */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

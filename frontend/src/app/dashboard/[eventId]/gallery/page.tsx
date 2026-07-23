@@ -28,10 +28,6 @@ export default function EventGalleryPage({ params }: { params: Promise<{ eventId
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchGallery();
-  }, [eventId]);
-
   const fetchGallery = async () => {
     try {
       const response = await api.get(`/media/event/${eventId}`);
@@ -43,6 +39,10 @@ export default function EventGalleryPage({ params }: { params: Promise<{ eventId
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchGallery();
+  }, [eventId]);
 
   const handleDelete = async (mediaId: string) => {
     if (!confirm("Are you sure you want to delete this media? It will also remove all AI face data associated with it.")) return;

@@ -19,12 +19,6 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
-    }
-  }, [user]);
-
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications/");
@@ -33,6 +27,12 @@ export default function Navbar() {
       console.warn("Failed to fetch notifications");
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
 
   const markAsRead = async (id: string) => {
     try {

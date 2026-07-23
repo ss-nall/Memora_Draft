@@ -5,6 +5,9 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: #bc0100;
+  --color-primary-hover: #9c0100;
+  --color-accent: #d92d20;
+  --color-surface-border: #e2e2e2;
   --color-on-primary: #ffffff;
   --color-primary-container: #eb0000;
   --color-on-primary-container: #fffbff;

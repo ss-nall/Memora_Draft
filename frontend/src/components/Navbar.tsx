@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { Bell, UserCircle, LogOut, Search } from "lucide-react";
+import { Bell, UserCircle, LogOut, Search, Settings, X } from "lucide-react";
 import api from "@/lib/api";
+import { Button } from "@/components/ui/Button";
 
 interface Notification {
   id: string;
@@ -18,6 +19,14 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // Profile preferences toggles
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [prefInvitations, setPrefInvitations] = useState(true);
+  const [prefRequests, setPrefRequests] = useState(true);
+  const [prefUploads, setPrefUploads] = useState(true);
+  const [prefAI, setPrefAI] = useState(true);
+  const [prefPrivacy, setPrefPrivacy] = useState(false);
 
   const fetchNotifications = async () => {
     try {
@@ -160,12 +169,19 @@ export default function Navbar() {
                     {user.full_name?.charAt(0).toUpperCase() || "U"}
                   </div>
                 )}
-                <span className="text-sm font-semibold text-on-surface hidden lg:inline-block max-w-[120px] truncate">
+                 <span className="text-sm font-semibold text-on-surface hidden lg:inline-block max-w-[120px] truncate">
                   {user.full_name}
                 </span>
                 <button
-                  onClick={logout}
+                  onClick={() => setIsSettingsOpen(true)}
                   className="p-2 text-secondary hover:text-primary hover:bg-primary-fixed/20 rounded-lg transition-colors ml-2"
+                  title="Profile Settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={logout}
+                  className="p-2 text-secondary hover:text-primary hover:bg-primary-fixed/20 rounded-lg transition-colors ml-1"
                   title="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -184,6 +200,134 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+
+      {/* Profile Settings Modal overlay */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full relative shadow-2xl space-y-6">
+            <button 
+              onClick={() => setIsSettingsOpen(false)}
+              className="absolute top-4 right-4 p-1.5 hover:bg-surface-container rounded-full"
+            >
+              <X className="w-5 h-5 text-secondary" />
+            </button>
+            
+            <div className="space-y-1">
+              <h3 className="font-display-lg text-2xl font-bold tracking-tight text-on-surface">Profile Settings</h3>
+              <p className="text-secondary text-sm">Manage your profile, preferences, and privacy toggles.</p>
+            </div>
+
+            {/* Profile Info Mockup */}
+            <div className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-secondary uppercase font-label-caps block mb-1.5">Profile Picture</label>
+                <div className="flex items-center gap-4">
+                  {user?.profile_picture ? (
+                    <img src={user.profile_picture} alt={user.full_name} className="w-16 h-16 rounded-full object-cover border border-outline-variant/20" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl">
+                      {user?.full_name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
+                  <button className="px-4 py-2 border border-outline-variant/30 rounded-full text-xs font-semibold hover:bg-surface-container transition-colors">
+                    Upload new
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-secondary uppercase font-label-caps block mb-1.5">Full Name</label>
+                <input 
+                  type="text" 
+                  value={user?.full_name || ""} 
+                  readOnly 
+                  className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-outline-variant/10 text-sm text-secondary cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-secondary uppercase font-label-caps block mb-1.5">Email Address</label>
+                <input 
+                  type="email" 
+                  value={user?.email || ""} 
+                  readOnly 
+                  className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-outline-variant/10 text-sm text-secondary cursor-not-allowed"
+                />
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="border-t border-outline-variant/10 pt-4 space-y-3">
+                <h4 className="font-semibold text-xs text-secondary uppercase font-label-caps tracking-wider block mb-1">Notification Preferences</h4>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-on-surface">Event Invitations</span>
+                  <input 
+                    type="checkbox" 
+                    checked={prefInvitations} 
+                    onChange={(e) => setPrefInvitations(e.target.checked)} 
+                    className="accent-primary w-4 h-4 cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-on-surface">Contributor Requests alerts</span>
+                  <input 
+                    type="checkbox" 
+                    checked={prefRequests} 
+                    onChange={(e) => setPrefRequests(e.target.checked)} 
+                    className="accent-primary w-4 h-4 cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-on-surface">Media upload completion alerts</span>
+                  <input 
+                    type="checkbox" 
+                    checked={prefUploads} 
+                    onChange={(e) => setPrefUploads(e.target.checked)} 
+                    className="accent-primary w-4 h-4 cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-on-surface">AI face indexing status alerts</span>
+                  <input 
+                    type="checkbox" 
+                    checked={prefAI} 
+                    onChange={(e) => setPrefAI(e.target.checked)} 
+                    className="accent-primary w-4 h-4 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Privacy Toggles */}
+              <div className="border-t border-outline-variant/10 pt-4 space-y-3">
+                <h4 className="font-semibold text-xs text-secondary uppercase font-label-caps tracking-wider block mb-1">Privacy Options</h4>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-on-surface">Public visibility inside event members lists</span>
+                  <input 
+                    type="checkbox" 
+                    checked={prefPrivacy} 
+                    onChange={(e) => setPrefPrivacy(e.target.checked)} 
+                    className="accent-primary w-4 h-4 cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              onClick={() => {
+                setIsSettingsOpen(false);
+                alert("Preferences updated successfully!");
+              }}
+              className="w-full rounded-full bg-primary hover:bg-primary-container text-white font-bold h-11 animate-pulse"
+            >
+              Save Preferences
+            </Button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

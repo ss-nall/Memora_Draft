@@ -54,7 +54,6 @@ export default function LoginPage() {
                 onError={() => {
                   setError("Google Login failed");
                 }}
-                useOneTap
                 shape="rectangular"
                 theme="filled_black"
                 size="large"

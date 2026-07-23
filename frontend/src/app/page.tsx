@@ -194,9 +194,6 @@ export default function HomePage() {
 
               {/* Match Indicator */}
               <div className="flex flex-col items-center gap-3">
-                <div className="px-6 py-2.5 bg-primary/10 text-primary rounded-full font-bold text-sm border border-primary/20">
-                  {matchPercentage}% Match
-                </div>
                 <div className="h-px w-24 md:w-32 bg-outline-variant/30 hidden md:block"></div>
                 <span className="material-symbols-outlined text-primary text-4xl animate-pulse">neurology</span>
               </div>

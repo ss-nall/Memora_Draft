@@ -88,18 +88,18 @@ export default function HomePage() {
         </div>
 
         {/* Floating Parallax Thumbnails (Desktop Only) */}
-        <div className="absolute top-1/4 left-8 w-48 h-64 rounded-2xl shadow-xl floating-parallax hidden xl:block" style={{ animationDelay: "0s" }}>
+        <div className="absolute top-1/4 left-8 w-48 h-64 p-2 bg-white rounded-3xl border border-outline-variant/10 shadow-2xl floating-parallax hidden xl:block" style={{ animationDelay: "0s" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
-            className="w-full h-full object-cover rounded-2xl border-4 border-white/30" 
+            className="w-full h-full object-cover rounded-2xl" 
             alt="Elderly woman portrait"
             src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=600&auto=format&fit=crop"
           />
         </div>
-        <div className="absolute bottom-1/4 right-8 w-56 h-40 rounded-2xl shadow-xl floating-parallax hidden xl:block" style={{ animationDelay: "-2s" }}>
+        <div className="absolute bottom-1/4 right-8 w-56 h-40 p-2 bg-white rounded-3xl border border-outline-variant/10 shadow-2xl floating-parallax hidden xl:block" style={{ animationDelay: "-2s" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
-            className="w-full h-full object-cover rounded-2xl border-4 border-white/30" 
+            className="w-full h-full object-cover rounded-2xl" 
             alt="Child steps on beach"
             src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop"
           />
@@ -154,14 +154,15 @@ export default function HomePage() {
             </ul>
           </div>
           <div className="order-1 lg:order-2 group">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-transform duration-700 ease-out-expo group-hover:scale-[1.02]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                className="w-full aspect-[4/5] object-cover" 
-                alt="Split screen restoration comparison"
-                src="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=1000&auto=format&fit=crop"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative p-3 bg-white rounded-[32px] border border-outline-variant/10 shadow-2xl transition-transform duration-700 ease-out-expo group-hover:scale-[1.02]">
+              <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  className="w-full h-full object-cover" 
+                  alt="Split screen restoration comparison"
+                  src="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=1000&auto=format&fit=crop"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -180,7 +181,7 @@ export default function HomePage() {
             <div className="relative bg-white rounded-[40px] p-8 md:p-12 shadow-xl border border-outline-variant/10 flex flex-col md:flex-row gap-8 items-center justify-between">
               {/* Person A */}
               <div className="flex-1 text-center">
-                <div className="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-primary-container mb-6 shadow-md">
+                <div className="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-primary/20 shadow-lg ring-8 ring-primary/5 mb-6">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     className="w-full h-full object-cover" 
@@ -200,7 +201,7 @@ export default function HomePage() {
 
               {/* Person B */}
               <div className="flex-1 text-center">
-                <div className="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-surface-container-high mb-6 shadow-md">
+                <div className="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-secondary-container/40 shadow-lg ring-8 ring-secondary-container/10 mb-6">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     className="w-full h-full object-cover" 
@@ -209,7 +210,7 @@ export default function HomePage() {
                   />
                 </div>
                 <p className="font-semibold text-on-surface">Liam Vance, 2024</p>
-                <p className="text-secondary text-sm">Liam Vance</p>
+                <p className="text-secondary text-sm font-semibold">Liam Vance</p>
               </div>
             </div>
             <p className="text-center mt-12 text-secondary max-w-2xl mx-auto leading-relaxed">

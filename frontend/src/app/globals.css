@@ -30,27 +30,27 @@
   --color-on-tertiary-fixed: #001a40;
   --color-on-tertiary-fixed-variant: #004491;
 
-  --color-surface: #f9f9f9;
+  --color-surface: #ffffff;
   --color-on-surface: #1a1c1c;
-  --color-surface-variant: #e2e2e2;
+  --color-surface-variant: #f4f4f5;
   --color-on-surface-variant: #603e39;
   --color-inverse-surface: #2f3131;
   --color-inverse-on-surface: #f1f1f1;
 
-  --color-surface-dim: #dadada;
-  --color-surface-bright: #f9f9f9;
+  --color-surface-dim: #e4e4e7;
+  --color-surface-bright: #ffffff;
   --color-surface-pure: #ffffff;
-  --color-surface-subtle: #fbfbfb;
+  --color-surface-subtle: #fafafa;
   
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f3f3f3;
-  --color-surface-container: #eeeeee;
-  --color-surface-container-high: #e8e8e8;
-  --color-surface-container-highest: #e2e2e2;
+  --color-surface-container-low: #f7f7f8;
+  --color-surface-container: #f1f1f2;
+  --color-surface-container-high: #e4e4e7;
+  --color-surface-container-highest: #d4d4d8;
 
   --color-outline: #956d67;
   --color-outline-variant: #ebbbb4;
-  --color-glass-fill: rgba(255, 255, 255, 0.7);
+  --color-glass-fill: rgba(255, 255, 255, 0.85);
 
   --font-display-xl: var(--font-hanken-grotesk);
   --font-display-lg: var(--font-hanken-grotesk);
@@ -62,7 +62,7 @@
 }
 
 :root {
-  --background: #f9f9f9;
+  --background: #ffffff;
   --foreground: #1a1c1c;
   --font-hanken-grotesk: 'Hanken Grotesk', sans-serif;
   --font-inter: 'Inter', sans-serif;

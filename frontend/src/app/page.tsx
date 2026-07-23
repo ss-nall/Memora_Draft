@@ -44,7 +44,7 @@ export default function HomePage() {
           <img 
             className="w-full h-full object-cover scale-105 transition-transform duration-1000 ease-out-expo" 
             alt="Family laughing in modern living room"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8KKeeaz84jbrPaDLUVKKlFKRzzVP4x-6qhwubFVtD-u4cjJeuopn7QwWRh7S6CqAyoZ0sEmRTawh9Cs__49A092-VPQrI98zFeVzTfN_kz2DRKL_uXhJtS6VkF0kBKiIDHHAnQzEuDtqtJk51AihW-9o-MCcUfhYNv9OtBk_QVqOaV1d04n3uSrxPuuUmiSDDJ3IYt5hv90srzt1Rr_JkjT68SbJ4NrK-OwuoCdZOvxeXI0sM7A5TnjrXsJbbqKBsxg_VvKOSshyY"
+            src="https://images.unsplash.com/photo-1609234656388-0ff363383899?q=80&w=2560&auto=format&fit=crop"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-surface"></div>
         </div>
@@ -357,7 +357,7 @@ export default function HomePage() {
             <img 
               className="w-full h-full object-cover" 
               alt="Elderly couple walk towards sunset"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbT9i8VymR3MbfklvtExWWt5ng_fe2QlY8ztJHml9Drtkvrrp-g78G66fx2bSqxlpA-lbC7xOGB4VRPlEqA5kcO09dGUBVQYOGfwSE8Z-B_6MU43Fw1zvXzZ2Z3r49VhpBKOYMij7rNiEjq112szWSANRTSv99wIVNRVFdvCdn5Ye-L9A-Jp_0L5fKcftM0aYk127Bit5Iv6Ga9ByH3lBAs-pJHaX1GVK6vVwceCPffF9SxzppZ66xcnK_Y8NgX7VZVjLOi4JZ7yj6"
+              src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=2560&auto=format&fit=crop"
             />
             <div className="absolute inset-0 bg-black/40"></div>
           </div>

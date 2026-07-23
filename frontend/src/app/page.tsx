@@ -50,12 +50,12 @@ export default function HomePage() {
         </div>
 
         {/* Content Overlay */}
-        <div className="relative z-10 text-center max-w-4xl px-6 md:px-16">
+        <div className="relative z-10 text-center max-w-3xl mx-6 px-6 py-12 md:px-12 md:py-16 glass-panel border border-white/60 shadow-2xl backdrop-blur-md rounded-[40px] bg-white/75">
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display-xl text-4xl sm:text-5xl md:text-7xl text-on-surface leading-tight mb-8"
+            className="font-display-xl text-4xl sm:text-5xl md:text-6xl text-on-surface leading-tight mb-8"
           >
             Every detail, <br/> <span className="text-primary italic font-semibold">exactly</span> as you felt it.
           </motion.h1>
@@ -93,7 +93,7 @@ export default function HomePage() {
           <img 
             className="w-full h-full object-cover rounded-2xl border-4 border-white/30" 
             alt="Elderly woman portrait"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuByrLEdqCEl_M4Eb13as3O-eTx0He_sUhWPJmzjpAB8yfkPTVyR40KIH7hrrUxk6EWxF4Bp-n0LNzGYYkmUJPDqfGyplK_naSjDW7RIJPCnkE5lpCO7gwnVFPYI95Xw07HkjicqjrSxPVeIZ_zr0tia05jvytsR1dSJpLiS0vxoicaL_E7w2mwQ8eOnNx9zVPDEPSof-WVUHL6oZf_kx7cnuzk0uB1CZv-d_RyMidmSuFzm4KYiYllr6lw0JtfIrr5dHIZWjvdwrUaW"
+            src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=600&auto=format&fit=crop"
           />
         </div>
         <div className="absolute bottom-1/4 right-8 w-56 h-40 rounded-2xl shadow-xl floating-parallax hidden xl:block" style={{ animationDelay: "-2s" }}>
@@ -101,7 +101,7 @@ export default function HomePage() {
           <img 
             className="w-full h-full object-cover rounded-2xl border-4 border-white/30" 
             alt="Child steps on beach"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhW0b9EokZnMYOA14UP5dO_KCuloX3EOAf7Em1kqPVexcU198KWrzW3Cyx2mdb8pxHP9s2YBA3f2xpc4q8C_ZIOtBwmiksKKaWAfabXhiw3koJx86zqVJE8IDqGr__Nbve-6509WV9ja8wfXDwffX_awQOjdUXjVwjflqQtzf2-iN1re8HDFdZli1IXXuNXRRwuJ2lMjoU6rRcBtjnNgA88kOW3sbR-CDQhKAhfFy4S-qYlXI9DHTeEHPB0nFQJrAhi7B7wab5LN2T"
+            src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop"
           />
         </div>
       </section>
@@ -159,7 +159,7 @@ export default function HomePage() {
               <img 
                 className="w-full aspect-[4/5] object-cover" 
                 alt="Split screen restoration comparison"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8lpCV7LXht2MOv3pCSOpzMsE4XFkdJgo2IbxpgvaXIX33FAXJv0EnukMBtsZbNaaOVkTR9bMm4xj_aufbZvamCStuL_M0ihJ51EQn3ORodu62pUnoOL-2x_3k4hAxHzlBEayHlizqBeNn4XlOt8so8xym39lB4jjVxFSzwrNLV7fV1O-v9Oz2LaWIaDeC6cN95VkTOpiR7KhydgMygL5555-xyynvBNxKWVBN08qSAU3M-37IEUrUWGDSE0l2Vzajt5r0_NISKG0Q"
+                src="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=1000&auto=format&fit=crop"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
@@ -185,7 +185,7 @@ export default function HomePage() {
                   <img 
                     className="w-full h-full object-cover" 
                     alt="Arthur Vance vintage portrait"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrE40-FFetq41XdBQFRSAL7ATqKgwQubriKs9mTLqaGvxTl47HJrAxX0o00B2yrYOVupqFqLFiRdhTkmAyfLyucfKkiqIBjicRySHbIayW3Ds_1Pi5hvN5LBABGS5EiovMwg7UCWJ4fGvAW3PEQ59HJB9yKEi3UsUMarQVfHa1ZG5Sx2LRy6D5a8ahhM-vYEphVwG84yYkq_0z9hH8mJXfuOC3PS3wVtI2GN_vBlUK-IPSO-RBuCJJw85ucDbdghwssvtlbHWIobU3"
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop"
                   />
                 </div>
                 <p className="font-semibold text-on-surface">Arthur Vance, 1944</p>
@@ -194,13 +194,9 @@ export default function HomePage() {
 
               {/* Match Indicator */}
               <div className="flex flex-col items-center gap-3">
-                <button 
-                  onClick={() => setIsDemoRunning(true)}
-                  disabled={isDemoRunning}
-                  className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-bold text-sm shadow-md hover:bg-primary-container disabled:opacity-85 active:scale-95 transition-all"
-                >
+                <div className="px-6 py-2.5 bg-primary/10 text-primary rounded-full font-bold text-sm border border-primary/20">
                   {matchPercentage}% Match
-                </button>
+                </div>
                 <div className="h-px w-24 md:w-32 bg-outline-variant/30 hidden md:block"></div>
                 <span className="material-symbols-outlined text-primary text-4xl animate-pulse">neurology</span>
               </div>
@@ -212,11 +208,11 @@ export default function HomePage() {
                   <img 
                     className="w-full h-full object-cover" 
                     alt="Liam Vance modern portrait"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsVihRenbD9nTKMpkafvnvLqkjL6h43d5s1tdt8QZuShiEHGIFsocz5k_8dxL2rOMpa7UuqGlAOsFvOfChvS3XowbWgylcK9P8E6Og2KEq6G9sdIMDz0fOlWuxSteERNshEOHwu8B-P0uOBcUNf94GkU5KJrhJyGBgC6V11POjIuZzQGwTwFux_qJPH-mDniyezPNVIXIB7GLqRDQOHnxk10f70ARllrG_bPzYirmGG7_4RrejHkRlmF1HXWqTEPGeLZ7WnitPINWr"
+                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop"
                   />
                 </div>
                 <p className="font-semibold text-on-surface">Liam Vance, 2024</p>
-                <p className="text-secondary text-sm">Great Grandson</p>
+                <p className="text-secondary text-sm">Liam Vance</p>
               </div>
             </div>
             <p className="text-center mt-12 text-secondary max-w-2xl mx-auto leading-relaxed">

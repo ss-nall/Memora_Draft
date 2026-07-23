@@ -93,15 +93,15 @@ export default function HomePage() {
           <img 
             className="w-full h-full object-cover rounded-2xl" 
             alt="Elderly woman portrait"
-            src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=600&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600&h=800&crop=faces"
           />
         </div>
         <div className="absolute bottom-1/4 right-8 w-56 h-40 p-2 bg-white rounded-3xl border border-outline-variant/10 shadow-2xl floating-parallax hidden xl:block" style={{ animationDelay: "-2s" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             className="w-full h-full object-cover rounded-2xl" 
-            alt="Child steps on beach"
-            src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop"
+            alt="Smiling child portrait"
+            src="https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&q=80&w=700&h=500&crop=faces"
           />
         </div>
       </section>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Camera, Sparkles, Image as ImageIcon, Play, Check, Navigation, ArrowRight } from "lucide-react";
+import { Play, Sparkles, Camera, Check, ChevronRight, TrendingUp, Upload, Wand2, Tv } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
@@ -226,31 +226,30 @@ export default function HomePage() {
             <h2 className="font-display-lg text-4xl sm:text-5xl text-on-surface font-semibold tracking-tight">The path to forever.</h2>
             <p className="text-secondary">Three simple steps to secure your legacy.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 relative">
-            <div className="absolute top-1/4 left-0 w-full h-px bg-outline-variant/20 hidden md:block z-0"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             
             {/* Step 1 */}
-            <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-              <div className="w-20 h-20 bg-white rounded-2xl shadow-lg border border-outline-variant/10 flex items-center justify-center transform hover:rotate-3 transition-transform">
-                <span className="material-symbols-outlined text-primary text-3xl">upload_file</span>
+            <div className="relative z-10 glass-panel p-8 rounded-3xl flex flex-col items-center text-center space-y-4 hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <Upload className="w-7 h-7" />
               </div>
               <h3 className="font-title-md text-xl font-bold">1. Ingest</h3>
               <p className="text-secondary max-w-xs text-sm leading-relaxed">Upload raw files, cloud links, or high-res scans. We handle all formats.</p>
             </div>
 
             {/* Step 2 */}
-            <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-              <div className="w-20 h-20 bg-primary text-on-primary rounded-2xl shadow-lg flex items-center justify-center transform hover:-rotate-3 transition-transform">
-                <span className="material-symbols-outlined text-white text-3xl">magic_button</span>
+            <div className="relative z-10 glass-panel p-8 rounded-3xl flex flex-col items-center text-center space-y-4 hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <Wand2 className="w-7 h-7" />
               </div>
               <h3 className="font-title-md text-xl font-bold">2. Enhance</h3>
               <p className="text-secondary max-w-xs text-sm leading-relaxed">Our cinematic AI engine repairs, upscales, and tags every face and location.</p>
             </div>
 
             {/* Step 3 */}
-            <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-              <div className="w-20 h-20 bg-white rounded-2xl shadow-lg border border-outline-variant/10 flex items-center justify-center transform hover:rotate-3 transition-transform">
-                <span className="material-symbols-outlined text-primary text-3xl">auto_awesome_motion</span>
+            <div className="relative z-10 glass-panel p-8 rounded-3xl flex flex-col items-center text-center space-y-4 hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <Tv className="w-7 h-7" />
               </div>
               <h3 className="font-title-md text-xl font-bold">3. Experience</h3>
               <p className="text-secondary max-w-xs text-sm leading-relaxed">Access your curated life story on any device, or order custom cinematic prints.</p>

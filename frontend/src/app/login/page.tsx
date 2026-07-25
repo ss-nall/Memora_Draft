@@ -39,10 +39,10 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="w-full glass-panel border border-outline-variant/20 shadow-xl">
+        <Card className="w-full bg-[var(--color-surface)] border-[var(--color-surface-border)]">
           <CardHeader className="space-y-1 text-center pb-8">
-            <CardTitle className="text-3xl font-bold tracking-tight text-on-surface">Welcome</CardTitle>
-            <p className="text-secondary text-sm">
+            <CardTitle className="text-3xl font-bold tracking-tight text-white">Welcome</CardTitle>
+            <p className="text-gray-400 text-sm">
               Sign in to Memora to capture and share memories
             </p>
           </CardHeader>
@@ -54,6 +54,7 @@ export default function LoginPage() {
                 onError={() => {
                   setError("Google Login failed");
                 }}
+                useOneTap
                 shape="rectangular"
                 theme="filled_black"
                 size="large"

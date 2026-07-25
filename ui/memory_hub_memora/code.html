@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Memora | Your Personalized Memory Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Hanken+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#f1f1f1",
+                    "glass-fill": "rgba(255, 255, 255, 0.7)",
+                    "tertiary": "#0059ba",
+                    "on-tertiary-fixed-variant": "#004491",
+                    "surface": "#f9f9f9",
+                    "surface-container": "#eeeeee",
+                    "surface-container-lowest": "#ffffff",
+                    "accent-gradient": "linear-gradient(135deg, #FF0000 0%, #FF6B6B 100%)",
+                    "primary-fixed": "#ffdad4",
+                    "surface-tint": "#c00100",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#dadada",
+                    "secondary-container": "#e2e2e2",
+                    "outline": "#956d67",
+                    "primary-fixed-dim": "#ffb4a8",
+                    "surface-container-highest": "#e2e2e2",
+                    "on-surface-variant": "#603e39",
+                    "surface-container-high": "#e8e8e8",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f9f9f9",
+                    "tertiary-fixed-dim": "#acc7ff",
+                    "outline-variant": "#ebbbb4",
+                    "background": "#f9f9f9",
+                    "surface-container-low": "#f3f3f3",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#930100",
+                    "surface-variant": "#e2e2e2",
+                    "primary": "#bc0100",
+                    "inverse-surface": "#2f3131",
+                    "on-surface": "#1a1c1c",
+                    "tertiary-container": "#0071e8",
+                    "on-secondary-fixed": "#1b1b1b",
+                    "on-primary-container": "#fffbff",
+                    "inverse-primary": "#ffb4a8",
+                    "secondary-fixed-dim": "#c6c6c6",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#474747",
+                    "primary-container": "#eb0000",
+                    "on-tertiary": "#ffffff",
+                    "on-background": "#1a1c1c",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-tertiary-container": "#fefcff",
+                    "surface-subtle": "#FBFBFB",
+                    "soft-gradient": "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 100%)",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#410000",
+                    "secondary": "#5e5e5e",
+                    "tertiary-fixed": "#d7e2ff",
+                    "on-secondary-container": "#646464",
+                    "on-tertiary-fixed": "#001a40",
+                    "surface-pure": "#FFFFFF"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin": "64px",
+                    "gutter": "24px",
+                    "xl": "64px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "base": "8px",
+                    "lg": "48px",
+                    "md": "24px",
+                    "xxl": "120px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "title-lg": ["Hanken Grotesk"],
+                    "label-caps": ["Inter"],
+                    "title-md": ["Hanken Grotesk"],
+                    "display-xl": ["Hanken Grotesk"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["17px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "700"}],
+                    "title-lg": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "title-md": ["28px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["15px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .ease-out-expo { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #ebbbb4;
+            transform: translateX(-50%);
+        }
+
+        /* Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 800ms cubic-bezier(0.19, 1, 0.22, 1), transform 800ms cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal {
+                transition: opacity 800ms ease;
+                transform: none;
+            }
+            .reveal.active {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- Side Navigation Shell -->
+<nav class="h-screen w-64 fixed left-0 top-0 z-40 bg-surface-pure border-r border-outline-variant/30 shadow-lg flex flex-col p-6 gap-8 hidden md:flex">
+<div class="flex items-center gap-2 mb-4">
+<span class="font-display-lg text-title-md text-primary">Memora</span>
+</div>
+<div class="flex-1 space-y-2">
+<!-- Active State: Memories -->
+<a class="flex items-center gap-4 px-4 py-3 bg-primary-container text-on-primary-container rounded-xl font-semibold transition-transform duration-300 ease-out-expo hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome_motion" style="font-variation-settings: 'FILL' 1;">auto_awesome_motion</span>
+<span class="font-body-md text-body-md">Memories</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-xl transition-transform duration-300 ease-out-expo hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-body-md text-body-md">Events</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-xl transition-transform duration-300 ease-out-expo hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<span class="font-body-md text-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-xl transition-transform duration-300 ease-out-expo hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="neurology">neurology</span>
+<span class="font-body-md text-body-md">AI Studio</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-xl transition-transform duration-300 ease-out-expo hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-2xl font-semibold shadow-md transition-all duration-300 active:scale-95">
+            New Memory
+        </button>
+<div class="mt-auto pt-6 border-t border-outline-variant/20 space-y-4">
+<div class="flex items-center gap-3 px-2">
+<img alt="Profile of Julian Rossi" class="w-10 h-10 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF2dKvCC6URzqencH6z5Q638RCwT3fARam_c4mEDdoqMBbLmW2Xivat8e76HWjy5EsZ7jXPy6a5FEIVp42IlQhMVN6zqp8a8rL-Oa1FA1L18CXRTPYrxwT4qrytyaAkYwpxcODRcg30gxUPm5f9lgb9rZOZHllSNmTe_JY6Ms_XKeynZ496ATOPSb8bsAlWhNkv4bGHbQ6eawhdaHnR_uEqsDNJD5TcIgf4JmDIpNC1BGMlLw-he1Ik6RYPeiwYmKfgT_CEvk089hP"/>
+<div>
+<p class="text-sm font-bold text-on-surface">Julian Rossi</p>
+<p class="text-xs text-secondary">Curator Level 4</p>
+</div>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-4 px-4 py-2 text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-xs font-semibold">Help</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 text-secondary hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-xs font-semibold">Sign Out</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="md:ml-64 min-h-screen">
+<!-- Hero Section -->
+<section class="relative h-[665px] w-full overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Hero background of friends laughing on a hill" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAXDeYZAUHuevS5ac1_6Fdox5rpX5kE_1i2HXKzfpD45gov980C2cmu8MClef6NG06mM0D3-gUfscNj_2DE-4aqSAtt8IHdlzMqS8J9zJ7jsBXJwElhZyDV47_y50z4MpCW3CS_H0dZQLtBhyymAeakkv-X6hqq6IDiUJWEouufpTFIDkK9mBw7J9kkO7EiRPUUjLd_f02Cq5G6D0pm9B5yXucaRlJJfIwaG8QLdWuwYRuxH_kzFPm1ggS0xh0lX8D4fPy1QI_pUKL"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-end px-margin pb-16">
+<div class="max-w-2xl">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-caps mb-6 inline-block">127 new memories discovered</span>
+<h1 class="font-display-xl text-display-xl text-on-surface mb-4">Good Evening, Alex. Welcome back to your memories.</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-lg">Your cinematic timeline has been updated with recent captures from your Amalfi Coast voyage.</p>
+</div>
+</div>
+</section>
+<!-- Horizontal Scroll: Reels -->
+<section class="py-xl reveal">
+<div class="px-margin flex justify-between items-end mb-base">
+<h2 class="font-title-md text-title-md">Continue watching reels</h2>
+<button class="text-primary font-semibold text-sm hover:underline">View all</button>
+</div>
+<div class="flex gap-md overflow-x-auto px-margin py-4 hide-scrollbar">
+<!-- Reel Card 1 -->
+<div class="min-w-[200px] h-[320px] rounded-[32px] overflow-hidden relative group cursor-pointer shadow-lg hover:scale-[1.02] transition-all duration-500 ease-out-expo">
+<img alt="Vespa in Amalfi" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3EskWIT4RkN4t9heRoRO-cOW71ZdHTTN8PJzhnQf7RoSBXsfW8qtallunP1rqyKRj1Wp7YIHIDXctBhQY4YbANbWXwhx0bWhKISM1cPUn-q4dZ9YLWmzIw3pWu0DrEp4SlYg8PfY1L3Gc5KMEWJ_gegeQUVAqe_hqVaDPCxdb-U0pRbjeOmtfLQWHg6FyRvBhcQZ7nU4Tl6-i4Xwo5nIhhX3ZjZWX8kCFrOD6yPPH4VIZn6xp3IiVBRmHVrMpnWI9P1vJMHa99FdZ"/>
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-white font-bold text-lg">Amalfi Drive</p>
+<p class="text-white/80 text-xs">2:45 min</p>
+</div>
+<div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Reel Card 2 -->
+<div class="min-w-[200px] h-[320px] rounded-[32px] overflow-hidden relative group cursor-pointer shadow-lg hover:scale-[1.02] transition-all duration-500 ease-out-expo">
+<img alt="Dinner at Zass" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjCpquxbSicm6bdLTUUCwUpbX8xAOa1Hi-7FSsOLrqQrVTD4xFsqIsQTpWEqQhouZTMeRM0M9g4i6GInh81KeWPzp1w1g-DLbXxQTshjXixxT0Icy1YoYuylgq4BnHyNMNgu07F_mazsFe3gN7KcwDAhMKDaISFVntVtEI91Ell8OVbPUZsCXlU4E7ur_4X5nI0e2pByjUr6rb-x45LOsnqcNcbfSnizZeztAwsdw3RQjfM1yJ_RhapxlA_n_ld5YsiwPTcHgESkcP"/>
+<div class="absolute inset-0 bg-black/20"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-white font-bold text-lg">Dinner at Zass</p>
+<p class="text-white/80 text-xs">1:20 min</p>
+</div>
+<div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Reel Card 3 -->
+<div class="min-w-[200px] h-[320px] rounded-[32px] overflow-hidden relative group cursor-pointer shadow-lg hover:scale-[1.02] transition-all duration-500 ease-out-expo">
+<img alt="Ocean Blues" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADS8IX3RbwD6XVgtWGS6KQr7wCrVCw4UxzMOKa75rNEea5KyxuFlIVv_r-OtJpGn776FZTTFpZzl_Xe5rrczrJMaIGPGMrR1cuMAmoW9-B75nURwre3IgM0xn9zc3qQxx4ZzbLQUzizm2q5kRP5r2P5wAsuW5TCNm7CiwVTZywEcKhiIbNwYfNLQ5Kt0UuhpRIAsW6MrlJWZlj1OX0uNQVMOS_DHc_ZsrSgiyNEKsuJxED_I-VbvgNr0Vce6myyD0P84JJmGO3B_Tj"/>
+<div class="absolute inset-0 bg-black/20"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-white font-bold text-lg">Ocean Blues</p>
+<p class="text-white/80 text-xs">4:10 min</p>
+</div>
+<div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Reel Card 4 -->
+<div class="min-w-[200px] h-[320px] rounded-[32px] overflow-hidden relative group cursor-pointer shadow-lg hover:scale-[1.02] transition-all duration-500 ease-out-expo">
+<img alt="Studio Visit" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT_NR13JWNjiH_9xy-SOD__9s6ClzcTMOmAPBPRMr6IwAWkhQQM0RZW-7vSCbWho5LVK41JL8ZTGs2PosF8QzaoqR9ShcjfkCFVCJzAi62kvkwYPpG8f-Alrgh0TsrLeMkrABC0SdLB6BmJQ6ZJg3qm5V-2nbGp3DGC6Z-Pylo5a97RSXgr9Ts_rm3H-etxuZAxGukd3a85OkRAU6-7zgXRMbt2QQysLArRptpDpY0nDx4kmlOjofZJZelH1WQeeuWb0kvji75J1Q1"/>
+<div class="absolute inset-0 bg-black/20"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-white font-bold text-lg">Studio Visit</p>
+<p class="text-white/80 text-xs">0:45 min</p>
+</div>
+<div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Reel Card 5 -->
+<div class="min-w-[200px] h-[320px] rounded-[32px] overflow-hidden relative group cursor-pointer shadow-lg hover:scale-[1.02] transition-all duration-500 ease-out-expo">
+<img alt="Metropolis sunset" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqtJEDEM24mmr_Lzi9OhEoxJQ3--rPMWIDHh61wfADPpvDT6-brf41nC9BLsfShcvYYQR8fvu4LPJpAYcFd7MH8v6Gl6izoG8mcndnrV57TyzfuDhH9-gVc9Vx-vs5xejMjrL1zspzZywYixaXOy_h83Kf_X74Fru3LUoae_oOkIyL_IPsjSAX4oVDZmIug3CVTmpoP8JyLIYP-8f5ErO7DfcG6RN7PQVGfd1EV6upaJBKEUT-xZiefRTBJGwuA8hy57wILkoO3VBx"/>
+<div class="absolute inset-0 bg-black/20"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-white font-bold text-lg">Metropolis</p>
+<p class="text-white/80 text-xs">2:15 min</p>
+</div>
+<div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Recommendations & On This Day -->
+<section class="px-margin pb-xxl">
+<div class="grid grid-cols-12 gap-gutter">
+<!-- AI Recommendations -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-low rounded-[40px] p-8 flex flex-col gap-8 shadow-sm reveal">
+<div class="flex justify-between items-center">
+<div>
+<h3 class="font-title-md text-title-md text-on-surface">AI Recommendations</h3>
+<p class="text-secondary">Curated based on your recent travels and interests.</p>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="neurology">neurology</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="glass-card p-6 rounded-3xl flex gap-4 group cursor-pointer transition-all duration-300 hover:shadow-md">
+<div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0">
+<img alt="Cafe series recommendation" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDza62ORgV5KAG5n8sFHZOx_OrVjs459bpNrX3lLbcQT9ANyIUiBRfSb5gnT7QVUtqNOj4NpoeqmYt5WxiAhENHmgJMg2eqmxVXbssLxPTJTHgBfENZOVFaAH4H6sKu0frGI4ZWNKzUO4jXuZiKVz-sV-1extAdL-JM9GOBL9zfnUkJA2lCVqHPrG1ci9y8ErLubXcvzHRtjznfjvrmr_Ag3bt6DIRsQMAIp239MUMUvxTFwFP3cmTMf4zVxdGOW9ivVneIh5Al9tBJ"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">The Cafe Series</p>
+<p class="text-sm text-secondary mb-2">Create a collection from your morning stops.</p>
+<button class="text-xs font-bold text-primary flex items-center gap-1">Generate <span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span></button>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl flex gap-4 group cursor-pointer transition-all duration-300 hover:shadow-md">
+<div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0">
+<img alt="Ancient echoes recommendation" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARrcZKbzYtJPYZZeNaV-nPgMoYGrWlXMeyIzZ5oF6HBpfXoxcXcJOxDB2up98cKGqL7PvtMaeiWWYnhRHK2-08M4kCln5rBla3RCy4qOVtB3TGZ--8Dc51NRbSMwqUgMXu3mLE5u5GDvMfSgkFAsmF9jo7kG4tW-1d89iuVGLcDZROFZVg0evRQDHUYnwoxDwY_DCDDV-LMs0f0lTYQSM9AFahcIFYpQuA1wqfL0DEtRAzxynXAVH4d65tnQIa_vSZW53hUD6Wdq3X"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Ancient Echoes</p>
+<p class="text-sm text-secondary mb-2">Enhance the colors of your heritage photos.</p>
+<button class="text-xs font-bold text-primary flex items-center gap-1">Apply AI <span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- On This Day -->
+<div class="col-span-12 lg:col-span-4 bg-primary text-on-primary rounded-[40px] p-8 flex flex-col justify-between shadow-xl relative overflow-hidden reveal">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+<div class="relative z-10">
+<p class="text-label-caps opacity-80 mb-2">ON THIS DAY</p>
+<h3 class="font-title-md text-title-md mb-6">3 Years Ago in Paris</h3>
+<div class="w-full aspect-square rounded-2xl overflow-hidden mb-6">
+<img alt="Parisian memory" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBp8T6Oeb9hJfrp6FYFvYj6koPlYY4Gmp5GlVHNAkwVLdc3hBeaeKWnzzCf-oeJ3DJ0P6yaFznMHqiGNM-VvQy2Mz7rgyVfpHnqlUKDWagm7o0oZz9GPucSE06Rpry5s2VXQl5M_lN4xOm2Dy37j4U9G9_taL5LA8f_fVOSY_fIUJkksMPqr1poATlPABGJF3YZb5tkYAj7Nz075Uq6vPpQmzs6PbckR7KMGkcqJjA38udHVPnB7DA8vih92beG4JhAza7AAlJVepvb"/>
+</div>
+<p class="font-body-md italic opacity-90">"That rainy afternoon at the Trocadéro..."</p>
+</div>
+<button class="mt-8 py-3 bg-white text-primary rounded-xl font-bold transition-transform hover:scale-105 active:scale-95 relative z-10">
+                        Relive Memory
+                    </button>
+</div>
+</div>
+</section>
+<!-- Timeline Section -->
+<section class="px-margin py-xxl relative">
+<h2 class="font-title-md text-title-md mb-xxl text-center">Chronological Journey</h2>
+<div class="relative timeline-line">
+<!-- Timeline Event 1 -->
+<div class="flex flex-col md:flex-row items-center gap-xl mb-xxl relative z-10 reveal">
+<div class="md:w-1/2 md:text-right">
+<p class="text-primary font-bold text-sm mb-2">OCT 14, 2023</p>
+<h4 class="font-title-md text-on-surface mb-4">Arrival in Amalfi</h4>
+<p class="text-secondary max-w-sm md:ml-auto">The beginning of the coast-to-coast voyage. Settled into the cliffside villa with views of the Tyrrhenian Sea.</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary border-4 border-surface shadow-md flex-shrink-0"></div>
+<div class="md:w-1/2">
+<div class="w-full h-64 rounded-[32px] overflow-hidden shadow-lg group">
+<img alt="Amalfi sunrise" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB25TMXWwinLjCSZ9WzoLn7I_lzV1qjaknFPdZs2CrtqbDpX9kdRng4V448aoOcse7OUOh9YUDUeLwl6j94Wz6GXUEhuQC2Af6-HCcAzZmlkKxPaTtBRbWM8vDBGnyvZnS66a2TH3E6eGfGIL9emX5S4uQFZquuE6hXFwyh2HSNnOHC-nwkQpJaiPKAJ7FGdLlWvGK-wr0teDYqXlgVitEbH6wCM7l9h1f4mFVcUi5vi4mXR8hIKX8TU-LMpqMgRmndH4qNMV3S876w"/>
+</div>
+</div>
+</div>
+<!-- Timeline Event 2 -->
+<div class="flex flex-col md:flex-row-reverse items-center gap-xl mb-xxl relative z-10 reveal">
+<div class="md:w-1/2 text-left">
+<p class="text-primary font-bold text-sm mb-2">OCT 16, 2023</p>
+<h4 class="font-title-md text-on-surface mb-4">The Hidden Grotto</h4>
+<p class="text-secondary max-w-sm">Discovered a secluded swimming spot only accessible by boat. The water was impossibly clear.</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary border-4 border-surface shadow-md flex-shrink-0"></div>
+<div class="md:w-1/2">
+<div class="w-full h-64 rounded-[32px] overflow-hidden shadow-lg group">
+<img alt="Underwater blue sea cave" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcXsOGb0rKmQ3Q6bECerGhbkpVWo3e9R9dCuyZfyyPXi7tM_vKgCYHm52iwPBXvRRFbEI3Xt2M8DKk_-Cz0OPDKwRDSC8ajtBWiULjFXHPmOcQ0zu40yJy8kLCWu9-_3FO8gnIZmmqA2ctR8vxgkhgFV0AEhnMk4jQlkX0XR7_-F78RIbosY3j3jw_ulztX4MrBknBVJ-N4nO1KDTkR9wZc7u4h5FVGJscpXwzy0PXqqPJiNMv055PscvxdtAaWDJIXsp0mN8qQTe6"/>
+</div>
+</div>
+</div>
+<!-- Timeline Event 3 -->
+<div class="flex flex-col md:flex-row items-center gap-xl relative z-10 reveal">
+<div class="md:w-1/2 md:text-right">
+<p class="text-primary font-bold text-sm mb-2">OCT 18, 2023</p>
+<h4 class="font-title-md text-on-surface mb-4">Ravello Heights</h4>
+<p class="text-secondary max-w-sm md:ml-auto">Strolled through the gardens of Villa Cimbrone. The Terrace of Infinity truly lives up to its name.</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary border-4 border-surface shadow-md flex-shrink-0"></div>
+<div class="md:w-1/2">
+<div class="w-full h-64 rounded-[32px] overflow-hidden shadow-lg group">
+<img alt="Ravello Terrace" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBV1EdmctLMNh5fkE2BkeZX-Y5nOKSVL6y9YU7DN7yvgF-zoxcppUr4iKnGolUAqEXdV6JIgV7oBhGWLQXik3NkXBg2jJh41V01Tczqo3yJJrpeRDlyoCZ9VHm3-KbypEIbOoafV0Ha-LlmWLhj6KtqGdalgSI3ghifOE0C53ZS0sX1_QgHZsC6dW28G5roM-UfIVoWYKV1xQ0zI3QP2ONdXWyF6DInsSOUYEX2VXRIJUH8G8ODM5CE0TPPwRYOKMvSMruO9yvNXIUq"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full py-xxl bg-surface-subtle border-t border-outline-variant/10">
+<div class="max-w-[1440px] mx-auto px-margin flex flex-col items-center gap-md">
+<span class="font-display-lg text-title-md text-on-surface">Memora Cinematic</span>
+<div class="flex gap-md flex-wrap justify-center">
+<a class="text-secondary hover:text-primary transition-opacity duration-300" href="#">Privacy Policy</a>
+<a class="text-secondary hover:text-primary transition-opacity duration-300" href="#">Terms of Service</a>
+<a class="text-secondary hover:text-primary transition-opacity duration-300" href="#">Cookie Settings</a>
+<a class="text-secondary hover:text-primary transition-opacity duration-300" href="#">Press Kit</a>
+</div>
+<p class="text-secondary text-sm mt-4">© 2024 Memora Cinematic. All rights reserved.</p>
+</div>
+</footer>
+</main>
+<!-- Mobile Bottom Navigation Shell (Suppressed on Web/Desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-outline-variant/10 flex justify-around items-center z-50">
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome_motion" style="font-variation-settings: 'FILL' 1;">auto_awesome_motion</span>
+<span class="text-[10px]">Memories</span>
+</button>
+<button class="flex flex-col items-center text-secondary">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-[10px]">Events</span>
+</button>
+<button class="w-12 h-12 -mt-8 bg-primary rounded-full shadow-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+<button class="flex flex-col items-center text-secondary">
+<span class="material-symbols-outlined" data-icon="neurology">neurology</span>
+<span class="text-[10px]">AI Studio</span>
+</button>
+<button class="flex flex-col items-center text-secondary">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px]">Settings</span>
+</button>
+</nav>
+<script>
+        // Micro-interactions for smooth scrolling or hover effects
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'scale(1.02) translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1) translateY(0)';
+            });
+        });
+
+        // Scroll Reveal Implementation
+        const revealObserverOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Optional: unobserve after reveal for one-time animation
+                    // revealObserver.unobserve(entry.target);
+                }
+            });
+        }, revealObserverOptions);
+
+        // Targeted reveal elements
+        document.querySelectorAll('.reveal').forEach(el => {
+            revealObserver.observe(el);
+        });
+
+        // Keep the atmospheric effect for sections if desired, or let the new reveal handle it
+        // The original observer code is kept but adjusted to not conflict with the new specific reveals
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('section').forEach(section => {
+            if(!section.classList.contains('reveal')) {
+                section.classList.add('transition-all', 'duration-1000', 'ease-out-expo', 'opacity-0', 'translate-y-10');
+                sectionObserver.observe(section);
+            }
+        });
+    </script>
+</body></html>

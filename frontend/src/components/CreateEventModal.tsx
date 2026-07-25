@@ -71,21 +71,21 @@ export function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModa
               transition={{ type: "spring", duration: 0.5 }}
               className="w-full max-w-lg pointer-events-auto"
             >
-              <Card className="border border-white/10 shadow-2xl bg-[#09090b]/95">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-white/10 pb-4">
-                  <CardTitle className="text-xl">Create New Event</CardTitle>
+              <Card className="glass-panel border border-outline-variant/20 shadow-2xl">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-outline-variant/15 pb-4">
+                  <CardTitle className="text-xl text-on-surface">Create New Event</CardTitle>
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-full hover:bg-surface-container transition-colors"
                   >
-                    <X className="h-5 w-5 text-gray-400" />
+                    <X className="h-5 w-5 text-secondary" />
                   </button>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-300 mb-1.5 block">Event Title</label>
+                        <label className="text-sm font-medium text-secondary mb-1.5 block">Event Title</label>
                         <Input
                           type="text"
                           placeholder="e.g. Sarah's Wedding"
@@ -97,7 +97,7 @@ export function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModa
                       </div>
                       
                       <div>
-                        <label className="text-sm font-medium text-gray-300 mb-1.5 block">Date</label>
+                        <label className="text-sm font-medium text-secondary mb-1.5 block">Date</label>
                         <Input
                           type="date"
                           value={date}
@@ -107,30 +107,30 @@ export function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModa
                           className="css-calendar-icon-fix"
                         />
                       </div>
-
+ 
                       <div>
-                        <label className="text-sm font-medium text-gray-300 mb-1.5 block">Description (Optional)</label>
+                        <label className="text-sm font-medium text-secondary mb-1.5 block">Description (Optional)</label>
                         <div className="relative">
-                          <div className="absolute left-4 top-3 text-gray-400">
+                          <div className="absolute left-4 top-3 text-secondary">
                             <AlignLeft className="h-5 w-5" />
                           </div>
                           <textarea
                             placeholder="Add a short description..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="flex min-h-[100px] w-full rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface)] pl-11 pr-4 py-3 text-sm text-[var(--foreground)] transition-colors placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                            className="flex min-h-[100px] w-full rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface)] pl-11 pr-4 py-3 text-sm text-[var(--foreground)] transition-colors placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                           />
                         </div>
                       </div>
                     </div>
-
+ 
                     {error && (
                       <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
                         {error}
                       </div>
                     )}
-
-                    <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+ 
+                    <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/15">
                       <Button type="button" variant="ghost" onClick={onClose}>
                         Cancel
                       </Button>

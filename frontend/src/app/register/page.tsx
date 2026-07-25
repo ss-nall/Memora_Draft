@@ -47,10 +47,10 @@ export default function RegisterPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="w-full">
+        <Card className="w-full glass-panel border border-outline-variant/20 shadow-xl">
           <CardHeader className="space-y-1 text-center pb-8">
-            <CardTitle className="text-3xl font-bold tracking-tight">Create an account</CardTitle>
-            <p className="text-gray-400 text-sm">
+            <CardTitle className="text-3xl font-bold tracking-tight text-on-surface">Create an account</CardTitle>
+            <p className="text-secondary text-sm">
               Enter your details below to create your account
             </p>
           </CardHeader>
@@ -95,9 +95,9 @@ export default function RegisterPage() {
               </Button>
             </form>
             
-            <div className="mt-6 text-center text-sm text-gray-400">
+            <div className="mt-6 text-center text-sm text-secondary">
               Already have an account?{" "}
-              <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+              <Link href="/login" className="text-primary hover:text-primary-container font-semibold transition-colors">
                 Sign in
               </Link>
             </div>

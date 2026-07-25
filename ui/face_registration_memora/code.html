@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Memora | Face Registration</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#f1f1f1",
+                        "glass-fill": "rgba(255, 255, 255, 0.7)",
+                        "tertiary": "#0059ba",
+                        "surface": "#f9f9f9",
+                        "surface-container": "#eeeeee",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#ffdad4",
+                        "on-surface": "#1a1c1c",
+                        "primary": "#bc0100",
+                        "inverse-surface": "#2f3131",
+                        "on-primary-container": "#fffbff",
+                        "primary-container": "#eb0000",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5e5e5e",
+                        "outline-variant": "#ebbbb4",
+                        "surface-pure": "#FFFFFF",
+                        "surface-subtle": "#FBFBFB",
+                        "surface-dim": "#dadada"
+                    },
+                    "spacing": {
+                        "margin": "64px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "lg": "48px",
+                        "md": "24px",
+                        "xxl": "120px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "title-lg": ["Hanken Grotesk"],
+                        "label-caps": ["Inter"],
+                        "title-md": ["Hanken Grotesk"],
+                        "display-xl": ["Hanken Grotesk"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["17px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "700"}],
+                        "title-lg": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "title-md": ["28px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-xl": ["72px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "body-md": ["15px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ease-out-expo { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* Face Mesh Scan Animation */
+        @keyframes scan {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        .scan-line {
+            animation: scan 3s linear infinite;
+            background: linear-gradient(180deg, transparent, rgba(188, 1, 0, 0.4), transparent);
+        }
+
+        /* Neural Particles Effect */
+        .particle {
+            position: absolute;
+            background: #bc0100;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .camera-container {
+            mask-image: radial-gradient(circle, white 100%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle, white 60%, transparent 100%);
+        }
+
+        /* Success Burst */
+        .photo-burst {
+            display: none;
+        }
+        .photo-burst.active {
+            display: grid;
+            animation: burstFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes burstFadeIn {
+            from { opacity: 0; scale: 0.8; }
+            to { opacity: 1; scale: 1; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        /* Reveal Animation Styles */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 800ms cubic-bezier(0.19, 1, 0.22, 1), transform 800ms cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal {
+                transition: opacity 800ms cubic-bezier(0.19, 1, 0.22, 1);
+                transform: none;
+            }
+            .reveal.active {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed">
+<!-- TopNavBar (Shared Component Identity) -->
+<header class="fixed top-0 w-full z-50 backdrop-blur-xl bg-glass-fill border-b border-outline-variant/20 shadow-sm transition-all duration-300 ease-out-expo">
+<div class="flex justify-between items-center h-20 px-margin max-w-[1440px] mx-auto">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-title-md tracking-tighter text-on-surface">Memora</span>
+<nav class="hidden md:flex gap-md">
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-all duration-300" href="#">Experience</a>
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-all duration-300" href="#">The Gallery</a>
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-all duration-300" href="#">Our Tech</a>
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-all duration-300" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-base">
+<button class="px-md py-sm font-body-md text-body-md text-secondary hover:opacity-80 active:scale-95 duration-200">Log In</button>
+<button class="px-md py-sm bg-on-surface text-surface-pure rounded-full font-body-md text-body-md hover:opacity-80 active:scale-95 duration-200">Get Started</button>
+</div>
+</div>
+</header>
+<main class="relative min-h-screen pt-xxl flex flex-col items-center justify-center">
+<!-- Background Animation Canvas -->
+<div class="fixed inset-0 -z-10 pointer-events-none opacity-40"></div>
+<!-- Registration Workspace -->
+<section class="w-full max-w-4xl px-margin flex flex-col items-center text-center" id="registration-canvas">
+<div class="mb-lg space-y-xs">
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tighter">Create My Memory Profile</h1>
+<p class="font-body-lg text-body-lg text-secondary">We'll now find you in every memory.</p>
+</div>
+<!-- Face Scanner Module -->
+<div class="relative w-[480px] h-[480px] flex items-center justify-center transition-all duration-700 ease-out-expo reveal" id="scanner-wrapper">
+<!-- Circular Camera Placeholder -->
+<div class="absolute inset-0 rounded-full border-[12px] border-surface-container-high overflow-hidden camera-container shadow-2xl">
+<img class="w-full h-full object-cover" data-alt="A bright, airy cinematic light-mode profile shot of a young adult looking directly into the camera with neutral expression. The scene is shot in high-key lighting, featuring a clean white studio background. The style is minimalist and high-tech, with a sense of calm and clarity, mirroring a premium Apple-style aesthetic." id="live-feed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOYoeh1QN8LAJ0ItCf5O2A0ltAw9zqiAGDbL1MKidrH774lYNIb75a3p3ziVM5VtCP39-xox5bC8JfiWdeSboleGHj2IliTlcktREyGYFQWNfBOiJO3uX00-F5t2s-fdfzUKnXHKwNFpyfouPWMiXVFnY07b_TRdtefBUIuX_BxiTdJuDO_7H7GjE2WW_TEXlxqQMy7cL0yBsSLy3c-dDR64ZCLZEcE8PzpHClMG0znwkjmOSAhtvnpVzryHXu8udPpR-FH0fuApQr"/>
+<!-- Scanner Overlays -->
+<div class="absolute inset-0 scan-line z-10 pointer-events-none"></div>
+<!-- Neural Visualization (Simulated) -->
+<canvas class="absolute inset-0 z-20 w-full h-full pointer-events-none" id="neural-overlay"></canvas>
+<!-- Indicators -->
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-md">
+<div class="flex items-center gap-xs bg-glass-fill px-md py-sm rounded-full backdrop-blur-md">
+<span class="material-symbols-outlined text-primary text-[18px]">light_mode</span>
+<span class="font-label-caps text-label-caps uppercase text-on-surface">Lighting: Perfect</span>
+</div>
+<div class="flex items-center gap-xs bg-glass-fill px-md py-sm rounded-full backdrop-blur-md">
+<span class="material-symbols-outlined text-primary text-[18px]">straighten</span>
+<span class="font-label-caps text-label-caps uppercase text-on-surface">Distance: 0.5m</span>
+</div>
+</div>
+</div>
+<!-- Animated Frame Rings -->
+<div class="absolute inset-0 rounded-full border-2 border-primary/20 animate-[spin_10s_linear_infinite]"></div>
+<div class="absolute inset-[-20px] rounded-full border border-outline-variant/10 animate-[spin_15s_linear_infinite_reverse]"></div>
+</div>
+<!-- Progress & Controls -->
+<div class="mt-xl w-full max-w-sm" id="controls-panel">
+<div class="relative h-1 w-full bg-surface-container-high rounded-full overflow-hidden mb-md">
+<div class="absolute top-0 left-0 h-full bg-primary w-0 transition-all duration-[4s] ease-linear" id="scan-progress"></div>
+</div>
+<div class="flex flex-col gap-sm">
+<p class="font-label-caps text-label-caps uppercase text-secondary tracking-widest" id="status-text">Hold still... scanning biometric markers</p>
+<button class="mt-base px-xl py-md bg-on-surface text-surface-pure rounded-full font-title-md text-body-lg hover:opacity-90 active:scale-95 transition-all duration-300 shadow-lg reveal" id="start-btn">Begin Recognition</button>
+</div>
+</div>
+</section>
+<!-- Success Result Grid (Initially Hidden) -->
+<section class="hidden absolute inset-0 w-full px-margin flex flex-col items-center justify-center bg-surface-pure" id="success-canvas">
+<div class="max-w-6xl w-full">
+<div class="text-center mb-xxl">
+<div class="inline-flex items-center justify-center w-20 h-20 bg-primary-container rounded-full text-on-primary-container mb-md">
+<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface tracking-tighter">Recognition Complete</h2>
+<p class="font-body-lg text-body-lg text-secondary">Julian, we found 248 memories of you.</p>
+</div>
+<!-- Bento Grid of Found Memories -->
+<div class="grid grid-cols-12 grid-rows-2 gap-md h-[500px]">
+<div class="col-span-4 row-span-2 overflow-hidden rounded-xl glass-card transition-transform duration-500 hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="A cinematic medium shot of a person laughing at an outdoor summer garden party. Soft bokeh background with string lights. Airy light-mode color grading, warm natural sunlight filtering through trees. High-end photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5_8Umcv5DnIpvb8ZruKsCjVFsRr3lq4J_B7Dvuw4NL5QobVyW_cWmNBTfpO2f_ZOh_DCHrwID7wgEiHvI3nzn61eCQ-CT4lLyucGNIEKIvrcpruZXaGQiQAW1COqzYyJxCubgymQH7RZgEWHQDn79cQ-uca8e0KSZgBa1HuvA1rXQAiOHfj2XKKAAY5Ggau7yPnvMTQJvFOX0hBhfsFZzRBPsr0fpfLJ41yBonrEqJj_CLaeBKYjstU9DR4KDZGHtf3rgqcBqYrY7"/>
+</div>
+<div class="col-span-5 row-span-1 overflow-hidden rounded-xl glass-card transition-transform duration-500 hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="A wide cinematic landscape shot of a coastal wedding ceremony at sunset. Minimalist aesthetic with white floral arrangements and a serene ocean backdrop. Editorial photography style, clean and sophisticated." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4Bh9nyCEl1ZPQ2vqfyZ3sq2OSOBNc1CVH58KtgSvmo0y59vhqpxw5bPvJL06MSaL8DHDPjCVWqfmtwGkuQS12Wgfct4zc7aIE1WgLhoL9U1MrB41mPrjzHd0JMfkl5rV-o3q8E2V0q7dKIL36Z-ktutkYbV7bv-Q0I9FuWMz8e_xTp_iuJkSqWEs5Ylq_Bx-nsXqLxat-qYjNgsVcAaMuRbGJwC9ENDl_SMgv2mIcPygmNOj78aJskdgYjHBlyVzjhFMNw5Sc2_vt"/>
+</div>
+<div class="col-span-3 row-span-1 overflow-hidden rounded-xl glass-card transition-transform duration-500 hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="Close-up artistic shot of hands holding a vintage film camera. Soft morning light in a minimalist interior apartment. Natural textures, airy atmosphere, premium lifestyle aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsoQYGr-wRPMkYUiNnLuk6W-KlwrPNxW8h_QRkqZtpVBfSBV69YEVTDlWG4PR1kzJgNyVfUSnhiPoED_KPhV3diKHmFosXJQthMd-O_D-5Z1jbXXXajMKtBAIySr-fudxPnr_0nDYON1aWh0dqbFtngd6-VcBJyzoznHu8BwDAaUBi_CnzMW2o-VjqyoyGtAmh6F6VgJgGcukoaMe6lKiEy6FD6qOLkBxO99FZzBZc8i7ItikRjqIGbBsaGxnpqtanu1KiYGFIR2eE"/>
+</div>
+<div class="col-span-3 row-span-1 overflow-hidden rounded-xl glass-card transition-transform duration-500 hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="Low angle shot of modern architecture reflecting a bright blue sky. Clean white surfaces, sharp shadows, minimalist high-tech feeling. Vibrant but balanced light-mode palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMZvlqpbR74-EczmgZuxhi5JX0s8wC50IQ5uZfWhsTL07DLwvtVf71Sv3ej3nruh7oBiuj7H9Z6EBPjWgnkyUojUMbFpleODVm8vZKzGoZrWJatD1Iwrz-VAJ4WXG4tUkzYo_0xPOLrUZj0dD5IoT7F2NH9appNUusdO2eRsIhi8hKEBukVNdOTz_Ky_EYQljT9bczhHr93o2i-x45_nNltskcXeSqw7Ju81ZbxC4fnf0hdB6qPhKcVvyWGnue_CQcflUYraHtje2t"/>
+</div>
+<div class="col-span-5 row-span-1 overflow-hidden rounded-xl glass-card transition-transform duration-500 hover:scale-[1.02]">
+<img class="w-full h-full object-cover" data-alt="A candid moment at a tech conference. A person interacting with a holographic interface in a bright, modern glass pavilion. Minimalist, professional, and future-forward design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5sK5-47i4rA3O3VSbUT9JWE4MK8zmxMyQVKQazAr0uLjZOwqjo-gO4aynIrIySbhEI4UHutlgv94zXJxxPIMP13wfnQGvgOC6u_12Nc6wcsVs7ps0uTwt45bf-Tb10IBPf0Ay91kbCuvBtNiH6OATSil2F7BtLkykOd-j2SD2Ox-9m9UWHuAdMIc-1GMbmWlRJ-mEloNq0MDml33XpaP9F1TGebe8_jIvpTHY9QRc062EOBdioR8KgejwTmQttq1Rn9NaX8LpkHA5"/>
+</div>
+</div>
+<div class="mt-xl flex justify-center">
+<button class="px-xl py-md bg-on-surface text-surface-pure rounded-full font-title-md text-body-lg hover:opacity-90 active:scale-95 transition-all duration-300 reveal">Enter My Gallery</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shared Component Identity) -->
+<footer class="w-full py-xxl bg-surface-subtle border-t border-outline-variant/10 mt-xxl">
+<div class="max-w-[1440px] mx-auto px-margin flex flex-col items-center gap-md">
+<span class="font-display-lg text-title-md text-on-surface">Memora</span>
+<div class="flex gap-md">
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Cookie Settings</a>
+<a class="font-body-md text-body-md text-secondary hover:text-on-surface transition-opacity duration-300" href="#">Press Kit</a>
+</div>
+<p class="font-body-md text-body-md text-secondary mt-sm">© 2024 Memora Cinematic. All rights reserved.</p>
+</div>
+</footer>
+<script>
+        // Neural Particles Simulation
+        const canvas = document.getElementById('neural-overlay');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(188, 1, 0, 0.2)';
+                ctx.fill();
+            }
+        }
+
+        function animateNeural() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateNeural);
+        }
+
+        // Logic for Scan Simulation
+        const startBtn = document.getElementById('start-btn');
+        const progressBar = document.getElementById('scan-progress');
+        const statusText = document.getElementById('status-text');
+        const regCanvas = document.getElementById('registration-canvas');
+        const successCanvas = document.getElementById('success-canvas');
+        const scannerWrapper = document.getElementById('scanner-wrapper');
+
+        startBtn.addEventListener('click', () => {
+            startBtn.disabled = true;
+            startBtn.style.opacity = '0.5';
+            statusText.innerText = 'Scanning neural landmarks...';
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                statusText.innerText = 'Syncing with memory database...';
+            }, 2000);
+
+            setTimeout(() => {
+                // Transform sequence
+                scannerWrapper.style.scale = '1.5';
+                scannerWrapper.style.opacity = '0';
+                regCanvas.style.opacity = '0';
+                regCanvas.style.transform = 'translateY(-20px)';
+                
+                setTimeout(() => {
+                    regCanvas.style.display = 'none';
+                    successCanvas.classList.remove('hidden');
+                    successCanvas.style.display = 'flex';
+                    successCanvas.animate([
+                        { opacity: 0, transform: 'scale(0.95)' },
+                        { opacity: 1, transform: 'scale(1)' }
+                    ], {
+                        duration: 800,
+                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                    });
+                }, 600);
+            }, 4200);
+        });
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        for(let i=0; i<40; i++) particles.push(new Particle());
+        animateNeural();
+
+        // Scroll-triggered Reveal Animation Observer
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Once visible, we can stop observing it
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            revealObserver.observe(el);
+        });
+    </script>
+</body></html>

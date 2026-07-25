@@ -52,18 +52,18 @@ export function QRCodeModal({ isOpen, onClose, inviteCode, eventName }: QRCodeMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#1C1C1E] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col items-center p-8">
+      <div className="glass-panel rounded-[24px] w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col items-center p-8 border border-outline-variant/20">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-secondary hover:text-on-surface transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-2xl font-bold text-center mb-2">{eventName}</h2>
-        <p className="text-gray-400 text-center mb-8">Scan to join the event and find your photos!</p>
+        <h2 className="text-2xl font-bold text-center mb-2 text-on-surface">{eventName}</h2>
+        <p className="text-secondary text-center mb-8">Scan to join the event and find your photos!</p>
 
-        <div className="bg-white p-4 rounded-xl mb-8">
+        <div className="bg-white p-4 rounded-xl mb-8 border border-outline-variant/10 shadow-sm">
           <QRCodeSVG
             id="qr-code-svg"
             value={url}
@@ -73,11 +73,11 @@ export function QRCodeModal({ isOpen, onClose, inviteCode, eventName }: QRCodeMo
           />
         </div>
 
-        <div className="w-full bg-black/20 p-4 rounded-lg border border-white/5 flex flex-col items-center justify-center mb-6">
-          <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">
+        <div className="w-full bg-surface-container-low/80 p-4 rounded-xl border border-outline-variant/15 flex flex-col items-center justify-center mb-6">
+          <div className="text-[10px] text-secondary uppercase tracking-wider font-bold mb-1">
             Invite Code
           </div>
-          <div className="text-2xl font-mono text-purple-400 tracking-[0.2em] font-bold">
+          <div className="text-2xl font-mono text-primary tracking-[0.2em] font-bold">
             {inviteCode}
           </div>
         </div>

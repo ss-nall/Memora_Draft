@@ -139,3 +139,37 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
     Returns the currently logged in user based on the Access Token.
     """
     return current_user
+
+@router.delete("/me")
+def delete_account(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    Deletes the current user and all associated data.
+    """
+    # Delete refresh tokens
+    db.query(RefreshToken).filter(RefreshToken.user_id == current_user.id).delete()
+    
+    # Delete events where user is ADMIN (cascade will handle event members if set up, otherwise we delete members first)
+    from models.event_member import EventMember, EventRole
+    from models.event import Event
+    from models.media import Media
+    
+    # Simple manual cascade
+    admin_memberships = db.query(EventMember).filter(EventMember.user_id == current_user.id, EventMember.role == EventRole.ADMIN).all()
+    event_ids = [m.event_id for m in admin_memberships]
+    
+    if event_ids:
+        # Delete media for these events
+        db.query(Media).filter(Media.event_id.in_(event_ids)).delete()
+        # Delete memberships
+        db.query(EventMember).filter(EventMember.event_id.in_(event_ids)).delete()
+        # Delete events
+        db.query(Event).filter(Event.id.in_(event_ids)).delete()
+        
+    # Delete remaining memberships
+    db.query(EventMember).filter(EventMember.user_id == current_user.id).delete()
+    
+    # Delete the user
+    db.delete(current_user)
+    db.commit()
+    
+    return {"message": "Account successfully deleted"}

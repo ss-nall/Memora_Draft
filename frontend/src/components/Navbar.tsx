@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Bell, UserCircle, LogOut } from "lucide-react";
 import api from "@/lib/api";
@@ -17,7 +18,7 @@ interface Notification {
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDropdown, setShowDropdown] = useState<string | false>(false);
 
   useEffect(() => {
     if (user) {
@@ -44,6 +45,11 @@ export default function Navbar() {
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[var(--color-surface-border)] bg-background/80 backdrop-blur-lg">
@@ -60,7 +66,7 @@ export default function Navbar() {
               {/* Notifications */}
               <div className="relative">
                 <button 
-                  onClick={() => setShowDropdown(!showDropdown)}
+                  onClick={() => setShowDropdown(showDropdown === 'notifications' ? false : 'notifications')}
                   className="relative p-2 hover:bg-[var(--color-surface)] rounded-full transition-colors"
                 >
                   <Bell className="w-5 h-5 text-gray-300" />
@@ -69,7 +75,7 @@ export default function Navbar() {
                   )}
                 </button>
 
-                {showDropdown && (
+                {showDropdown === 'notifications' && (
                   <div className="absolute right-0 mt-2 w-80 bg-[var(--color-surface)] border border-[var(--color-surface-border)] rounded-xl shadow-xl overflow-hidden z-50">
                     <div className="p-4 border-b border-[var(--color-surface-border)]">
                       <h3 className="font-semibold text-white">Notifications</h3>
@@ -97,20 +103,46 @@ export default function Navbar() {
               </div>
 
               {/* User Menu */}
-              <div className="flex items-center gap-3 pl-4 border-l border-[var(--color-surface-border)]">
-                {user.profile_picture ? (
-                  <img src={user.profile_picture} alt="Profile" className="w-8 h-8 rounded-full border border-[var(--color-surface-border)]" />
-                ) : (
-                  <UserCircle className="w-8 h-8 text-gray-400" />
-                )}
-                <span className="text-gray-200 hidden md:block">{user.full_name}</span>
+              <div className="relative border-l border-[var(--color-surface-border)] pl-4">
                 <button 
-                  onClick={logout}
-                  className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors ml-2"
-                  title="Logout"
+                  onClick={() => setShowDropdown(showDropdown === 'user' ? false : 'user')}
+                  className="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-[var(--color-surface)] transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
+                  {user.profile_picture ? (
+                    <img src={user.profile_picture} alt="Profile" className="w-8 h-8 rounded-full border border-[var(--color-surface-border)]" />
+                  ) : (
+                    <UserCircle className="w-8 h-8 text-gray-400" />
+                  )}
+                  <span className="text-gray-200 hidden md:block text-sm font-medium">{user.full_name}</span>
                 </button>
+
+                {showDropdown === 'user' && (
+                  <div className="absolute right-0 mt-2 w-56 bg-[#09090b] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
+                    <div className="p-4 border-b border-white/5 bg-white/5">
+                      <p className="font-medium text-white truncate">{user.full_name}</p>
+                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <div className="p-2">
+                      <Link 
+                        href="/settings" 
+                        onClick={() => setShowDropdown(false)}
+                        className="flex items-center px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <UserCircle className="w-4 h-4 mr-3" />
+                        Account Settings
+                      </Link>
+                    </div>
+                    <div className="p-2 border-t border-white/5">
+                      <button 
+                        onClick={logout}
+                        className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4 mr-3" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

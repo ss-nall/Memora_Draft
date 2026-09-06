@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import storage from "@/lib/storage";
 
 interface User {
   id: string;
@@ -10,13 +11,14 @@ interface User {
   full_name: string;
   profile_picture?: string;
   google_id?: string;
+  face_embedding_id?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   accessToken: string | null;
-  login: (access: string, refresh: string, userData: User) => void;
-  logout: () => void;
+  login: (access: string, refresh: string, userData: User) => Promise<void>;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -30,27 +32,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check local storage for existing session on app load
-    const storedToken = localStorage.getItem("access_token");
-    const storedUser = localStorage.getItem("user");
-    
-    if (storedToken && storedUser) {
-      setAccessToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const loadSession = async () => {
+      const storedToken = await storage.getItem("access_token");
+      const storedUser = await storage.getItem("user");
+      
+      if (storedToken && storedUser) {
+        setAccessToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
+      setIsLoading(false);
+    };
+    loadSession();
   }, []);
 
-  const login = (access: string, refresh: string, userData: User) => {
+  const login = async (access: string, refresh: string, userData: User) => {
     setAccessToken(access);
     setUser(userData);
-    localStorage.setItem("access_token", access);
-    localStorage.setItem("refresh_token", refresh);
-    localStorage.setItem("user", JSON.stringify(userData));
+    await storage.setItem("access_token", access);
+    await storage.setItem("refresh_token", refresh);
+    await storage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = async () => {
     try {
-      const refresh = localStorage.getItem("refresh_token");
+      const refresh = await storage.getItem("refresh_token");
       if (refresh) {
         await api.post("/auth/logout", { refresh_token: refresh });
       }
@@ -59,9 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAccessToken(null);
       setUser(null);
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user");
+      await storage.removeItem("access_token");
+      await storage.removeItem("refresh_token");
+      await storage.removeItem("user");
       router.push("/login");
     }
   };

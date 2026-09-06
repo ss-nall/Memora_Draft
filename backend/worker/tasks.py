@@ -1,6 +1,9 @@
 import logging
+from typing import Optional
+import uuid
 from worker.celery_app import celery_app
 from core.database import SessionLocal
+from core.config import settings
 from models.media import Media
 from models.guest import Guest
 from core.ai import extract_face_embeddings, add_embedding_to_index
@@ -138,3 +141,356 @@ def process_media_upload(self, media_id: str, file_path: str, event_id: str, is_
                 os.remove(temp_file_path)
             except Exception as e:
                 logger.error(f"Failed to delete temp file {temp_file_path}: {e}")
+
+
+# ==============================================================================
+# AI MEMORY REEL COMPILATION TASK
+# ==============================================================================
+@celery_app.task(name="compile_ai_memory_reel")
+def compile_ai_memory_reel(user_id: Optional[str], event_id: str, invite_code: str, target_embedding: list, settings_dict: dict) -> dict:
+    logger.info(f"Starting AI Memory Reel compilation for event: {event_id}")
+    db = SessionLocal()
+    temp_paths = []
+    clips = []
+    audio_clip = None
+    final_clip = None
+    
+    try:
+        # 1. Search DB faces using target_embedding to find matching photo media
+        from core.ai import find_matching_photos
+        matched_results = find_matching_photos(db, event_id, target_embedding)
+        matched_media_ids = list(set(r["media_id"] for r in matched_results))
+        
+        if not matched_media_ids:
+            return {"status": "failed", "detail": "No matched media found for user"}
+            
+        from models.media import Media, MediaType
+        photos = db.query(Media).filter(
+            Media.event_id == event_id,
+            Media.id.in_(matched_media_ids),
+            Media.media_type == MediaType.PHOTO
+        ).all()
+        
+        if not photos:
+            return {"status": "failed", "detail": "No matched photos found for user"}
+            
+        # 2. Setup Slideshow Settings
+        slide_duration = 4.0
+        speed = settings_dict.get("speed", "normal")
+        if speed == "slow":
+            slide_duration = 6.0
+        elif speed == "fast":
+            slide_duration = 2.0
+            
+        # 3. Create ImageClips using MoviePy
+        from moviepy import ImageClip, concatenate_videoclips
+        
+        for photo in photos:
+            path = photo.cloudinary_url or photo.storage_url
+            if path.startswith("http"):
+                # Download file
+                response = requests.get(path, stream=True)
+                response.raise_for_status()
+                fd, temp_p = tempfile.mkstemp(suffix=".jpg")
+                with os.fdopen(fd, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                temp_paths.append(temp_p)
+                local_path = temp_p
+            else:
+                local_path = path
+                
+            if os.path.exists(local_path):
+                clip = ImageClip(local_path).set_duration(slide_duration)
+                
+                # Apply simple fadein/fadeout transitions
+                transition = settings_dict.get("transition", "fade")
+                if transition == "fade":
+                    clip = clip.fadein(0.5).fadeout(0.5)
+                clips.append(clip)
+                
+        if not clips:
+            return {"status": "failed", "detail": "Failed to load any image clips"}
+            
+        # 4. Concatenate and apply audio if requested
+        final_clip = concatenate_videoclips(clips, method="compose")
+        
+        music_url = settings_dict.get("musicUrl")
+        if music_url and music_url.startswith("http"):
+            try:
+                response = requests.get(music_url, stream=True)
+                response.raise_for_status()
+                fd_a, temp_a = tempfile.mkstemp(suffix=".mp3")
+                with os.fdopen(fd_a, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                temp_paths.append(temp_a)
+                
+                from moviepy import AudioFileClip
+                audio_clip = AudioFileClip(temp_a)
+                if audio_clip.duration > final_clip.duration:
+                    audio_clip = audio_clip.subclip(0, final_clip.duration)
+                final_clip = final_clip.set_audio(audio_clip)
+            except Exception as e:
+                logger.error(f"Failed to attach audio soundtrack: {e}")
+                
+        # 5. Write final output MP4 to disk
+        fd_out, temp_out = tempfile.mkstemp(suffix=".mp4")
+        os.close(fd_out)
+        temp_paths.append(temp_out)
+        
+        final_clip.write_videofile(
+            temp_out,
+            fps=24,
+            codec="libx264",
+            audio_codec="aac" if audio_clip else None,
+            verbose=False,
+            logger=None
+        )
+        
+        # 6. Upload compiled video to Cloudinary or save local fallback
+        import cloudinary
+        import cloudinary.uploader
+        
+        cloudinary.config(
+          cloud_name = settings.CLOUDINARY_CLOUD_NAME,
+          api_key = settings.CLOUDINARY_API_KEY,
+          api_secret = settings.CLOUDINARY_API_SECRET,
+          secure = True
+        )
+        
+        if settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY:
+            upload_result = cloudinary.uploader.upload(
+                temp_out,
+                resource_type="video",
+                folder=f"memora/reels/{event_id}"
+            )
+            result_url = upload_result.get("secure_url")
+        else:
+            os.makedirs("uploads/reels", exist_ok=True)
+            local_filename = f"{uuid.uuid4()}.mp4"
+            dest_path = os.path.join("uploads/reels", local_filename)
+            import shutil
+            shutil.copyfile(temp_out, dest_path)
+            result_url = dest_path
+            
+        # 7. Persist to DB if user is authenticated
+        if user_id:
+            from models.memory import Memory, MemoryType
+            memory = db.query(Memory).filter(
+                Memory.user_id == user_id,
+                Memory.event_id == event_id,
+                Memory.memory_type == MemoryType.AI_REEL
+            ).first()
+            if not memory:
+                memory = Memory(
+                    user_id=user_id,
+                    event_id=event_id,
+                    memory_type=MemoryType.AI_REEL,
+                    result_url=result_url
+                )
+                db.add(memory)
+            else:
+                memory.result_url = result_url
+            db.commit()
+            
+        return {"status": "success", "result_url": result_url}
+        
+    except Exception as exc:
+        logger.error(f"Failed compiling AI Reel: {exc}")
+        return {"status": "failed", "error": str(exc)}
+        
+    finally:
+        db.close()
+        # Clean up MoviePy references to free video handles
+        if final_clip:
+            try:
+                final_clip.close()
+            except:
+                pass
+        for c in clips:
+            try:
+                c.close()
+            except:
+                pass
+        if audio_clip:
+            try:
+                audio_clip.close()
+            except:
+                pass
+        # Clean up all temp files
+        for p in temp_paths:
+            if os.path.exists(p):
+                try:
+                    os.remove(p)
+                except Exception as e:
+                    logger.error(f"Failed deleting temp file {p}: {e}")
+
+
+# ==============================================================================
+# VIDEO MOMENTS COMPILATION TASK
+# ==============================================================================
+@celery_app.task(name="compile_video_moments")
+def compile_video_moments(user_id: Optional[str], event_id: str, invite_code: str, target_embedding: list) -> dict:
+    logger.info(f"Starting Video Moments compilation for event: {event_id}")
+    db = SessionLocal()
+    temp_paths = []
+    clips = []
+    source_videos = []
+    final_clip = None
+    
+    try:
+        # 1. Search DB faces using target_embedding to find matching video media & timestamps
+        from core.ai import find_matching_photos
+        matched_results = find_matching_photos(db, event_id, target_embedding)
+        
+        if not matched_results:
+            return {"status": "failed", "detail": "No matches found"}
+            
+        from models.media import Media, MediaType
+        
+        # Group timestamps by video media ID
+        video_timestamps = {}
+        for r in matched_results:
+            media_id = r["media_id"]
+            timestamp = r["timestamp"]
+            if timestamp is not None:
+                media = db.query(Media).filter(Media.id == media_id).first()
+                if media and media.media_type == MediaType.VIDEO:
+                    if media_id not in video_timestamps:
+                        video_timestamps[media_id] = []
+                    video_timestamps[media_id].append(timestamp)
+                    
+        if not video_timestamps:
+            return {"status": "failed", "detail": "No matched video moments found"}
+            
+        # 2. Extract subclips using MoviePy
+        from moviepy import VideoFileClip, concatenate_videoclips
+        
+        for media_id, t_list in video_timestamps.items():
+            media = db.query(Media).filter(Media.id == media_id).first()
+            path = media.cloudinary_url or media.storage_url
+            if path.startswith("http"):
+                response = requests.get(path, stream=True)
+                response.raise_for_status()
+                fd_v, temp_v = tempfile.mkstemp(suffix=".mp4")
+                with os.fdopen(fd_v, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                temp_paths.append(temp_v)
+                local_path = temp_v
+            else:
+                local_path = path
+                
+            if os.path.exists(local_path):
+                video = VideoFileClip(local_path)
+                source_videos.append(video)
+                
+                # Sort timestamps chronologically
+                t_list = sorted(t_list)
+                for t in t_list:
+                    # Clip ±2 seconds around the matched timestamp
+                    start = max(0, t - 2.0)
+                    end = min(video.duration, t + 2.0)
+                    if end > start:
+                        sub = video.subclip(start, end)
+                        clips.append(sub)
+                        
+        if not clips:
+            return {"status": "failed", "detail": "Failed to slice any video moments"}
+            
+        # 3. Concatenate clips
+        final_clip = concatenate_videoclips(clips, method="compose")
+        
+        # 4. Write final output MP4 to disk
+        fd_out, temp_out = tempfile.mkstemp(suffix=".mp4")
+        os.close(fd_out)
+        temp_paths.append(temp_out)
+        
+        final_clip.write_videofile(
+            temp_out,
+            fps=24,
+            codec="libx264",
+            audio_codec="aac",
+            verbose=False,
+            logger=None
+        )
+        
+        # 5. Upload compiled video to Cloudinary or save local fallback
+        import cloudinary
+        import cloudinary.uploader
+        
+        cloudinary.config(
+          cloud_name = settings.CLOUDINARY_CLOUD_NAME,
+          api_key = settings.CLOUDINARY_API_KEY,
+          api_secret = settings.CLOUDINARY_API_SECRET,
+          secure = True
+        )
+        
+        if settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY:
+            upload_result = cloudinary.uploader.upload(
+                temp_out,
+                resource_type="video",
+                folder=f"memora/moments/{event_id}"
+            )
+            result_url = upload_result.get("secure_url")
+        else:
+            os.makedirs("uploads/moments", exist_ok=True)
+            local_filename = f"{uuid.uuid4()}.mp4"
+            dest_path = os.path.join("uploads/moments", local_filename)
+            import shutil
+            shutil.copyfile(temp_out, dest_path)
+            result_url = dest_path
+            
+        # 6. Persist to DB if user is authenticated
+        if user_id:
+            from models.memory import Memory, MemoryType
+            memory = db.query(Memory).filter(
+                Memory.user_id == user_id,
+                Memory.event_id == event_id,
+                Memory.memory_type == MemoryType.VIDEO_MOMENT
+            ).first()
+            if not memory:
+                memory = Memory(
+                    user_id=user_id,
+                    event_id=event_id,
+                    memory_type=MemoryType.VIDEO_MOMENT,
+                    result_url=result_url
+                )
+                db.add(memory)
+            else:
+                memory.result_url = result_url
+            db.commit()
+            
+        return {"status": "success", "result_url": result_url}
+        
+    except Exception as exc:
+        logger.error(f"Failed compiling Video Moments: {exc}")
+        return {"status": "failed", "error": str(exc)}
+        
+    finally:
+        db.close()
+        # Clean up MoviePy references to free video handles
+        if final_clip:
+            try:
+                final_clip.close()
+            except:
+                pass
+        for c in clips:
+            try:
+                c.close()
+            except:
+                pass
+        for v in source_videos:
+            try:
+                v.close()
+            except:
+                pass
+        # Clean up all temp files
+        for p in temp_paths:
+            if os.path.exists(p):
+                try:
+                    os.remove(p)
+                except Exception as e:
+                    logger.error(f"Failed deleting temp file {p}: {e}")
+

@@ -1,198 +1,206 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Camera, Shield, QrCode, ArrowRight, Share2, ChartBar } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Scan, Sparkles, QrCode, ArrowRight, UploadCloud, Film, ShieldCheck, Play } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [quickCode, setQuickCode] = useState("");
+  const router = useRouter();
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth - 0.5) * 10,
-        y: (e.clientY / window.innerHeight - 0.5) * 10,
-      });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  const handleQuickJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (quickCode.trim()) {
+      router.push(`/events?code=${encodeURIComponent(quickCode.trim().toUpperCase())}`);
+    } else {
+      router.push("/events");
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen pt-12 pb-32 text-center px-4 overflow-hidden relative font-sans text-[#1C2321]">
+    <div className="w-full flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] px-4 sm:px-6 py-12 md:py-16 text-stone-900">
       
-      {/* Top Navbar (Specific to this Landing Page design) */}
-      <nav className="absolute top-0 w-full max-w-7xl px-6 py-6 flex items-center justify-between z-50">
-        <div className="font-bold text-xl tracking-tight text-[#14241B]">Memora</div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
-          <a href="#" className="hover:text-[#14241B] transition-colors">Features</a>
-          <a href="#" className="hover:text-[#14241B] transition-colors">Solutions</a>
-          <a href="#" className="hover:text-[#14241B] transition-colors">Gallery</a>
-          <a href="#" className="hover:text-[#14241B] transition-colors">Pricing</a>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-[#14241B]">Login</Link>
-          <Link href="/dashboard">
-            <button className="bg-[#14241B] text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-[#1E3629] transition-all">
-              Book Now
-            </button>
-          </Link>
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="max-w-4xl space-y-8 relative z-10 mt-24"
-      >
-        <div className="inline-flex items-center rounded-full bg-[#14241B] px-4 py-1 text-xs font-semibold text-white tracking-widest uppercase shadow-sm">
-          The Premier Event AI Platform
+      <div className="max-w-4xl text-center space-y-4 md:space-y-6">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-600/20 text-[#C25E2E] text-xs font-semibold tracking-wide">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>AI-Powered Event Photo & Video Discovery</span>
         </div>
-        
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] text-[#14241B]">
-          Memories captured by AI,<br />
-          <span className="text-[#D33B31] italic font-serif tracking-normal">
-            delivered in seconds.
-          </span>
+
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-stone-900 leading-[1.15]">
+          Find yourself in every event photo. <br />
+          <span className="text-[#C25E2E]">Instantly, with AI face matching.</span>
         </h1>
-        
-        <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto font-medium leading-relaxed mt-6">
-          Elevate your event experience with real-time AI processing, instant delivery, facial recognition, and stunning cinematic results.
+
+        <p className="text-base sm:text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
+          Memora indexes event photos and videos using neural facial embeddings. Organizers upload media in bulk; attendees scan their face to get their personal gallery and AI Memory Reel.
         </p>
+      </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <Link href="/dashboard" className="w-full sm:w-auto">
-            <button className="w-full sm:w-auto px-8 h-12 text-sm bg-[#14241B] text-white hover:bg-[#1E3629] rounded-full font-semibold transition-all hover:scale-105 active:scale-95">
-              Book a Demo
-            </button>
-          </Link>
-          <Link href="/events" className="w-full sm:w-auto">
-            <button className="w-full sm:w-auto px-8 h-12 text-sm rounded-full font-semibold border border-gray-300 text-[#14241B] bg-white hover:bg-gray-50 transition-all">
-              Explore Capabilities
-            </button>
-          </Link>
-        </div>
-      </motion.div>
+      {/* Two Clear Entry Points: Organizer vs Attendee */}
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+        
+        {/* Card 1: Attendee Portal */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="glass-card p-6 sm:p-8 flex flex-col justify-between border border-stone-900/[0.08] relative overflow-hidden"
+        >
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-[#C25E2E]">
+              <Scan className="w-6 h-6" />
+            </div>
 
-      {/* Floating Mockup Component */}
-      <motion.div
-        className="mt-16 w-full max-w-5xl relative z-10 perspective-[2000px]"
-        initial={{ opacity: 0, y: 60 }}
-        animate={{ 
-          opacity: 1, 
-          y: 0, 
-          rotateX: mousePosition.y * -0.5,
-          rotateY: mousePosition.x * 0.5
-        }}
-        transition={{ 
-          opacity: { duration: 1, delay: 0.2 },
-          y: { duration: 1, delay: 0.2, type: "spring", bounce: 0.4 },
-          rotateX: { type: "spring", stiffness: 50, damping: 20 },
-          rotateY: { type: "spring", stiffness: 50, damping: 20 }
-        }}
-      >
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/50 bg-[#E8E4DF] p-2">
-          {/* Faux Tablet Frame */}
-          <div className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-inner border border-white relative h-[400px] md:h-[600px]">
-             {/* Gradient glow behind mockup content */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-gradient-to-tr from-[#D33B31]/20 to-blue-400/20 blur-[80px]" />
-             
-             {/* Mock Dashboard Content Inside Tablet */}
-             <div className="absolute inset-4 bg-white rounded-xl shadow-sm border border-gray-100 flex p-4">
-                {/* Mock Sidebar */}
-                <div className="w-1/4 border-r border-gray-100 pr-4 space-y-4">
-                  <div className="w-full h-8 bg-gray-100 rounded-md" />
-                  <div className="w-3/4 h-6 bg-gray-50 rounded-md" />
-                  <div className="w-3/4 h-6 bg-gray-50 rounded-md" />
-                  <div className="w-1/2 h-6 bg-gray-50 rounded-md" />
-                </div>
-                {/* Mock Content */}
-                <div className="flex-1 pl-4 space-y-4">
-                  <div className="flex gap-4">
-                    <div className="w-1/3 h-24 bg-[#14241B]/5 rounded-xl border border-[#14241B]/10" />
-                    <div className="w-1/3 h-24 bg-[#D33B31]/5 rounded-xl border border-[#D33B31]/10" />
-                    <div className="w-1/3 h-24 bg-blue-50 rounded-xl border border-blue-100" />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                     <div className="col-span-2 h-64 bg-gray-50 rounded-xl border border-gray-100" />
-                     <div className="col-span-1 h-64 bg-gray-50 rounded-xl border border-gray-100" />
-                  </div>
-                </div>
-             </div>
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#C25E2E] block">
+                For Attendees & Guests
+              </span>
+              <h2 className="text-2xl font-bold text-stone-900 mt-1">
+                Find Your Photos
+              </h2>
+            </div>
+
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Scan your face with your device camera or upload a reference selfie. The system searches thousands of event photos and video clips to deliver only the moments you appear in.
+            </p>
+
+            {/* Quick Invite Code Form */}
+            <form onSubmit={handleQuickJoin} className="pt-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter Event Code (e.g. WED-892)"
+                  value={quickCode}
+                  onChange={(e) => setQuickCode(e.target.value.toUpperCase())}
+                  className="flex-1 h-11 px-3.5 rounded-xl border border-stone-300 bg-white text-xs font-mono tracking-wider placeholder:font-sans placeholder:text-stone-400 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20"
+                />
+                <button
+                  type="submit"
+                  className="h-11 px-4 bg-[#C25E2E] hover:bg-[#A34A20] text-white text-xs font-medium rounded-xl transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <span>Join</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
-      </motion.div>
 
-      {/* Intelligent by Design Section */}
-      <div className="mt-32 w-full max-w-5xl space-y-12">
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#14241B]">Intelligent by Design</h2>
-          <p className="text-gray-500 text-sm md:text-base max-w-xl mx-auto">
-            Elevating the standard of event photography through a seamless, AI-driven workflow that prioritizes speed and precision.
+          <div className="pt-6 border-t border-stone-100 mt-6 flex items-center justify-between text-xs text-stone-500 font-medium">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              Private & Direct Delivery
+            </span>
+            <Link href="/events" className="text-[#C25E2E] hover:underline">
+              Open Scanner &rarr;
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Card 2: Organizer Portal */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.08 }}
+          className="glass-card p-6 sm:p-8 flex flex-col justify-between border border-stone-900/[0.08] relative overflow-hidden"
+        >
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800">
+              <UploadCloud className="w-6 h-6" />
+            </div>
+
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 block">
+                For Photographers & Hosts
+              </span>
+              <h2 className="text-2xl font-bold text-stone-900 mt-1">
+                Host an Event
+              </h2>
+            </div>
+
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Create an event, drag-and-drop hundreds of photos and videos, and generate printable QR code table cards so guests can access their memories seamlessly.
+            </p>
+
+            <div className="pt-2">
+              <Link href="/dashboard" className="block w-full">
+                <button
+                  type="button"
+                  className="w-full h-11 px-5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Open Organizer Dashboard</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-stone-100 mt-6 flex items-center justify-between text-xs text-stone-500 font-medium">
+            <span className="flex items-center gap-1.5">
+              <QrCode className="w-4 h-4 text-stone-600" />
+              Instant QR Signage
+            </span>
+            <Link href="/dashboard" className="text-stone-800 hover:underline">
+              Create Event &rarr;
+            </Link>
+          </div>
+        </motion.div>
+
+      </div>
+
+      {/* Real Pipeline Architecture Section */}
+      <div className="w-full max-w-4xl mt-20 pt-16 border-t border-stone-200/80 space-y-8">
+        <div className="text-center space-y-2">
+          <h3 className="text-2xl font-bold text-stone-900">
+            How the AI Pipeline Works
+          </h3>
+          <p className="text-sm text-stone-500 max-w-lg mx-auto">
+            A real-time, asynchronous media workflow powered by deep neural networks.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           
-          {/* Feature 1 */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-[340px] relative overflow-hidden group hover:shadow-md transition-shadow">
-            <div className="space-y-4 z-10 w-2/3">
-              <span className="inline-block px-3 py-1 bg-[#D33B31]/10 text-[#D33B31] text-[10px] font-bold tracking-wider rounded-full uppercase">Processing Engine</span>
-              <h3 className="text-2xl font-bold text-[#14241B]">Advanced Face Scanning</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Guests instantly receive their personalized photos without manual searching. Our neural engine matches thousands of images per hour with sub-millisecond latency.
-              </p>
+          <div className="glass-card p-5 rounded-2xl border border-stone-900/[0.06] space-y-2.5">
+            <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-xs font-bold font-mono text-stone-700">
+              01
             </div>
-            {/* Mock Image Overlay */}
-            <div className="absolute right-[-20%] bottom-[-10%] w-64 h-64 bg-gray-200 rounded-2xl shadow-xl transform rotate-[-5deg] group-hover:rotate-0 transition-transform duration-500 border-4 border-white overflow-hidden">
-               <div className="w-full h-full bg-[#14241B] opacity-10" />
-            </div>
-          </div>
-
-          {/* Feature 2 */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center h-[340px] relative overflow-hidden text-center group hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
-              <Share2 className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-bold text-[#14241B] mb-2">Bespoke Galleries</h3>
-            <p className="text-gray-500 text-sm max-w-xs leading-relaxed">
-              Personalized white-label links delivered via SMS the moment the shutter clicks.
+            <h4 className="text-sm font-semibold text-stone-900">Bulk Media Upload</h4>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Photographers upload RAW or JPEG files and video clips. Files are cataloged with EXIF metadata and orientation fix.
             </p>
           </div>
 
-          {/* Feature 3 */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-[280px] group hover:shadow-md transition-shadow">
-            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#14241B] mb-4">
-              <Shield className="w-5 h-5" />
+          <div className="glass-card p-5 rounded-2xl border border-stone-900/[0.06] space-y-2.5">
+            <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-xs font-bold font-mono text-stone-700">
+              02
             </div>
-            <h3 className="text-xl font-bold text-[#14241B] mb-2">Sovereign Privacy</h3>
-            <p className="text-gray-500 text-sm leading-relaxed">
-              Enterprise-grade security with SOC2 compliance. Guests remain in total control over their digital footprints with one-click data deletion.
+            <h4 className="text-sm font-semibold text-stone-900">Face Vector Indexing</h4>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Celery workers run InsightFace to detect multi-angle faces and store 512-D vectors in a FAISS index.
             </p>
           </div>
 
-          {/* Feature 4 */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-row items-center justify-between h-[280px] group hover:shadow-md transition-shadow">
-            <div className="w-1/2 pr-4 space-y-2">
-              <h3 className="text-xl font-bold text-[#14241B]">Precision Analytics</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Granular tracking of engagement, downloads, and social shares. Monitor the pulse of your event.
-              </p>
+          <div className="glass-card p-5 rounded-2xl border border-stone-900/[0.06] space-y-2.5">
+            <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-xs font-bold font-mono text-[#C25E2E]">
+              03
             </div>
-            <div className="w-1/2 flex items-center justify-center">
-              <div className="w-full max-w-[150px] space-y-3">
-                <div className="h-2 bg-gray-100 rounded-full w-full overflow-hidden">
-                  <div className="h-full bg-[#14241B] w-3/4 rounded-full" />
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full w-full overflow-hidden">
-                  <div className="h-full bg-[#D33B31] w-1/2 rounded-full" />
-                </div>
-              </div>
+            <h4 className="text-sm font-semibold text-stone-900">1-Click Live Face Scan</h4>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Attendee scans face with camera. FAISS runs cosine distance matching against the indexed event database.
+            </p>
+          </div>
+
+          <div className="glass-card p-5 rounded-2xl border border-stone-900/[0.06] space-y-2.5">
+            <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-xs font-bold font-mono text-[#C25E2E]">
+              04
             </div>
+            <h4 className="text-sm font-semibold text-stone-900">Personal Memory Reel</h4>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Matched photos, video highlights, and an animated AI Memory Reel are compiled and downloadable in 1 click.
+            </p>
           </div>
 
         </div>

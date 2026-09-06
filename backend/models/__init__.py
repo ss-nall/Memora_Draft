@@ -8,5 +8,6 @@ from .event_member import EventMember, EventRole
 from .contributor_request import ContributorRequest, RequestStatus
 from .notification import Notification
 from .refresh_token import RefreshToken
+from .companion_request import CompanionRequest
 
 # This ensures all models are loaded before Alembic imports Base.

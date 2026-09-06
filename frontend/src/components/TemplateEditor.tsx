@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Sparkles, Image as ImageIcon, Wind, Music, Play, FastForward, Settings2 } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Wind, Music, Play, FastForward, Settings2, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
@@ -36,117 +38,102 @@ export function TemplateEditor({ settings, onChange, onPlay, onClose }: Template
   };
 
   return (
-    <Card className="w-full max-w-sm h-full max-h-[80vh] overflow-y-auto bg-zinc-950 border-white/10 flex flex-col">
-      <CardHeader className="border-b border-white/5 pb-4 sticky top-0 bg-zinc-950/90 backdrop-blur z-10">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold flex items-center gap-2">
-            <Settings2 className="w-5 h-5 text-purple-400" />
-            Customization Studio
-          </CardTitle>
+    <div className="w-full max-w-sm h-full max-h-[85vh] overflow-y-auto bg-white border border-stone-200/90 rounded-3xl shadow-2xl flex flex-col text-stone-900 font-sans">
+      <div className="p-4 border-b border-stone-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur-md z-10">
+        <div className="flex items-center gap-2">
+          <Settings2 className="w-4 h-4 text-[#C25E2E]" />
+          <span className="text-sm font-bold text-stone-900">Reel Settings</span>
         </div>
-      </CardHeader>
+        <button
+          onClick={onClose}
+          className="p-1 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition-colors cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
       
-      <CardContent className="space-y-6 pt-6 flex-1">
+      <div className="p-5 space-y-5 flex-1 text-xs">
         
         {/* Speed */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-            <FastForward className="w-4 h-4" /> Playback Speed
+        <div className="space-y-2">
+          <label className="font-semibold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+            <FastForward className="w-3.5 h-3.5 text-[#C25E2E]" /> Playback Pace
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5">
             {(['slow', 'normal', 'fast'] as SpeedType[]).map((s) => (
-              <Button 
-                key={s} 
-                variant={settings.speed === s ? "default" : "outline"}
-                className={`capitalize ${settings.speed === s ? 'bg-purple-600 hover:bg-purple-700' : 'border-white/10 hover:bg-white/5'}`}
+              <button
+                type="button"
+                key={s}
                 onClick={() => update('speed', s)}
+                className={`py-2 px-3 rounded-xl font-medium capitalize transition-all cursor-pointer ${
+                  settings.speed === s
+                    ? "bg-[#C25E2E] text-white shadow-xs"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200/70"
+                }`}
               >
                 {s}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Transition */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-            <Wind className="w-4 h-4" /> Transition Style
+        {/* Transition Style */}
+        <div className="space-y-2">
+          <label className="font-semibold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+            <Wind className="w-3.5 h-3.5 text-[#C25E2E]" /> Visual Transition
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             {(['fade', 'slide', 'zoom', 'flip'] as TransitionType[]).map((t) => (
-              <Button 
-                key={t} 
-                variant={settings.transition === t ? "default" : "outline"}
-                className={`capitalize ${settings.transition === t ? 'bg-purple-600 hover:bg-purple-700' : 'border-white/10 hover:bg-white/5'}`}
+              <button
+                type="button"
+                key={t}
                 onClick={() => update('transition', t)}
+                className={`py-2 px-3 rounded-xl font-medium capitalize transition-all cursor-pointer ${
+                  settings.transition === t
+                    ? "bg-[#C25E2E] text-white shadow-xs"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200/70"
+                }`}
               >
                 {t}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Background */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-            <ImageIcon className="w-4 h-4" /> Background Effect
+        {/* Background Style */}
+        <div className="space-y-2">
+          <label className="font-semibold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+            <ImageIcon className="w-3.5 h-3.5 text-[#C25E2E]" /> Frame Backdrop
           </label>
-          <div className="grid grid-cols-1 gap-2">
-            <Button 
-              variant={settings.background === 'solid' ? "default" : "outline"}
-              className={`justify-start ${settings.background === 'solid' ? 'bg-purple-600 hover:bg-purple-700' : 'border-white/10 hover:bg-white/5'}`}
-              onClick={() => update('background', 'solid')}
-            >
-              Solid Black
-            </Button>
-            <Button 
-              variant={settings.background === 'gradient' ? "default" : "outline"}
-              className={`justify-start ${settings.background === 'gradient' ? 'bg-purple-600 hover:bg-purple-700' : 'border-white/10 hover:bg-white/5'}`}
-              onClick={() => update('background', 'gradient')}
-            >
-              Neon Gradient
-            </Button>
-            <Button 
-              variant={settings.background === 'blur' ? "default" : "outline"}
-              className={`justify-start ${settings.background === 'blur' ? 'bg-purple-600 hover:bg-purple-700' : 'border-white/10 hover:bg-white/5'}`}
-              onClick={() => update('background', 'blur')}
-            >
-              Glassmorphism (Blurred Photo)
-            </Button>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(['solid', 'gradient', 'blur'] as BackgroundType[]).map((b) => (
+              <button
+                type="button"
+                key={b}
+                onClick={() => update('background', b)}
+                className={`py-2 px-3 rounded-xl font-medium capitalize transition-all cursor-pointer ${
+                  settings.background === b
+                    ? "bg-[#C25E2E] text-white shadow-xs"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200/70"
+                }`}
+              >
+                {b}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Presets */}
-        <div className="space-y-3 pt-4 border-t border-white/10">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" /> Pre-built Vibes
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
-              className="border-white/10 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/50"
-              onClick={() => onChange({ template: 'vintage', transition: 'fade', background: 'solid', speed: 'normal', musicUrl: null })}
-            >
-              Vintage Film
-            </Button>
-            <Button 
-              variant="outline"
-              className="border-white/10 hover:bg-pink-500/10 hover:text-pink-500 hover:border-pink-500/50"
-              onClick={() => onChange({ template: 'party', transition: 'zoom', background: 'gradient', speed: 'fast', musicUrl: null })}
-            >
-              Neon Party
-            </Button>
-          </div>
+        <div className="pt-2 border-t border-stone-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            Apply & Play Reel
+          </button>
         </div>
-        
-      </CardContent>
 
-      <div className="p-4 border-t border-white/5 bg-zinc-900/50 sticky bottom-0 flex gap-2">
-         <Button variant="ghost" onClick={onClose} className="flex-1">Close</Button>
-         <Button onClick={onPlay} className="flex-1 bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/20">
-           <Play className="w-4 h-4 mr-2" /> Play Reel
-         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

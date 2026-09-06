@@ -14,35 +14,35 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", isLoading, children, disabled, asChild, ...props }, ref) => {
     
     const variants: Record<string, string> = {
-      primary: "bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white shadow-lg shadow-purple-500/30",
-      secondary: "bg-[var(--color-secondary)] hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30",
-      outline: "border border-[var(--color-surface-border)] bg-transparent hover:bg-[var(--color-surface)] text-[var(--foreground)]",
-      ghost: "bg-transparent hover:bg-[var(--color-surface)] text-[var(--foreground)]",
-      danger: "bg-[var(--color-accent)] hover:bg-rose-600 text-white shadow-lg shadow-rose-500/30",
+      primary: "bg-[#C25E2E] hover:bg-[#A34A20] text-white shadow-sm font-medium",
+      secondary: "bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200/80 font-medium",
+      outline: "border border-stone-300 bg-white/85 hover:bg-white text-stone-800 shadow-sm font-medium",
+      ghost: "bg-transparent hover:bg-stone-100 text-stone-700 font-medium",
+      danger: "bg-red-600 hover:bg-red-700 text-white shadow-sm font-medium",
+      default: "bg-[#C25E2E] hover:bg-[#A34A20] text-white shadow-sm font-medium",
     };
 
     const sizes: Record<string, string> = {
-      sm: "h-9 px-3 text-sm",
-      md: "h-11 px-6 text-base",
-      lg: "h-14 px-8 text-lg font-semibold",
+      sm: "h-9 px-3.5 text-xs rounded-lg",
+      md: "h-11 px-5 text-sm rounded-xl",
+      lg: "h-13 px-7 text-base rounded-xl font-medium",
     };
 
     return (
       <motion.button
-        whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
         whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "inline-flex items-center justify-center rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 disabled:pointer-events-none disabled:opacity-50",
-          variants[variant],
-          sizes[size],
+          "inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+          variants[variant] || variants.primary,
+          sizes[size] || sizes.md,
           className
         )}
         {...props as any}
       >
         {isLoading ? (
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : null}
         {children}
       </motion.button>
@@ -52,3 +52,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button };
+

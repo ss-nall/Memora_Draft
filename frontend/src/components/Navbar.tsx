@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Bell, UserCircle, LogOut } from "lucide-react";
+import { Bell, UserCircle, LogOut, Scan, Plus, Check } from "lucide-react";
 import api from "@/lib/api";
 
 interface Notification {
@@ -18,7 +18,9 @@ interface Notification {
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showDropdown, setShowDropdown] = useState<string | false>(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (user) {
@@ -30,70 +32,119 @@ export default function Navbar() {
     try {
       const res = await api.get("/notifications/");
       setNotifications(res.data);
-    } catch (e) {
-      console.warn("Failed to fetch notifications");
+    } catch {
+      // Background notifications silent error
     }
   };
 
   const markAsRead = async (id: string) => {
     try {
       await api.put(`/notifications/${id}/read`);
-      setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
     } catch (e) {
       console.error(e);
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
-  const pathname = usePathname();
-
-  if (pathname.startsWith('/dashboard')) {
-    return null;
-  }
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--color-surface-border)] bg-background/80 backdrop-blur-lg">
-      <div className="container mx-auto flex h-16 items-center justify-between px-6">
-        <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-          Memora
+    <header className="sticky top-0 z-40 w-full border-b border-stone-900/[0.06] bg-[#F5F4F0]/85 backdrop-blur-md">
+      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+        
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-lg bg-[#C25E2E] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            M
+          </div>
+          <span className="font-semibold text-lg tracking-tight text-stone-900">
+            Memora
+          </span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm font-medium">
-          <Link href="/events" className="hover:text-purple-400 transition-colors">Events</Link>
-          <Link href="/dashboard" className="hover:text-purple-400 transition-colors">Dashboard</Link>
-          
+
+        {/* Navigation & Roles */}
+        <nav className="flex items-center gap-1 sm:gap-4 text-sm font-medium">
+          <Link
+            href="/events"
+            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              pathname.startsWith("/events")
+                ? "bg-white text-stone-900 shadow-sm border border-stone-200"
+                : "text-stone-600 hover:text-stone-900 hover:bg-white/60"
+            }`}
+          >
+            <Scan className="w-3.5 h-3.5 text-[#C25E2E]" />
+            <span>Find Photos</span>
+          </Link>
+
+          <Link
+            href="/dashboard"
+            className={`px-3 py-1.5 rounded-lg transition-colors ${
+              pathname.startsWith("/dashboard")
+                ? "bg-white text-stone-900 shadow-sm border border-stone-200"
+                : "text-stone-600 hover:text-stone-900 hover:bg-white/60"
+            }`}
+          >
+            Organizer Dashboard
+          </Link>
+
           {user ? (
-            <div className="flex items-center gap-4 relative">
-              {/* Notifications */}
+            <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-stone-300/80 relative">
+              
+              {/* Real Notifications Dropdown */}
               <div className="relative">
-                <button 
-                  onClick={() => setShowDropdown(showDropdown === 'notifications' ? false : 'notifications')}
-                  className="relative p-2 hover:bg-[var(--color-surface)] rounded-full transition-colors"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    setShowUserMenu(false);
+                  }}
+                  className="relative p-2 text-stone-600 hover:text-stone-900 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
+                  title="Notifications"
                 >
-                  <Bell className="w-5 h-5 text-gray-300" />
+                  <Bell className="w-4 h-4" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[var(--background)]"></span>
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#C25E2E] rounded-full ring-2 ring-[#F5F4F0]"></span>
                   )}
                 </button>
 
-                {showDropdown === 'notifications' && (
-                  <div className="absolute right-0 mt-2 w-80 bg-[var(--color-surface)] border border-[var(--color-surface-border)] rounded-xl shadow-xl overflow-hidden z-50">
-                    <div className="p-4 border-b border-[var(--color-surface-border)]">
-                      <h3 className="font-semibold text-white">Notifications</h3>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="p-3.5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+                      <span className="text-xs font-semibold text-stone-900 uppercase tracking-wider">
+                        Notifications
+                      </span>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] font-medium text-[#C25E2E] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+                          {unreadCount} new
+                        </span>
+                      )}
                     </div>
-                    <div className="max-h-96 overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-stone-100">
                       {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-gray-400 text-sm">No new notifications</div>
+                        <div className="p-6 text-center text-stone-400 text-xs">
+                          No notifications yet.
+                        </div>
                       ) : (
-                        notifications.map(notif => (
-                          <div 
-                            key={notif.id} 
-                            className={`p-4 border-b border-[var(--color-surface-border)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer ${!notif.is_read ? 'bg-[var(--color-surface-hover)]' : ''}`}
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`p-3.5 hover:bg-stone-50 transition-colors cursor-pointer flex items-start gap-2.5 ${
+                              !notif.is_read ? "bg-amber-50/40" : ""
+                            }`}
                             onClick={() => markAsRead(notif.id)}
                           >
-                            <p className={`text-sm ${!notif.is_read ? 'text-white' : 'text-gray-300'}`}>{notif.message}</p>
-                            <span className="text-xs text-gray-500 mt-1 block">
-                              {new Date(notif.created_at).toLocaleDateString()}
-                            </span>
+                            <div className="w-2 h-2 rounded-full bg-[#C25E2E] mt-1.5 shrink-0 opacity-80" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-stone-800 leading-relaxed font-normal">
+                                {notif.message}
+                              </p>
+                              <span className="text-[10px] text-stone-400 mt-1 block">
+                                {new Date(notif.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {!notif.is_read && (
+                              <Check className="w-3.5 h-3.5 text-stone-400 hover:text-stone-700 shrink-0" />
+                            )}
                           </div>
                         ))
                       )}
@@ -102,51 +153,66 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* User Menu */}
-              <div className="relative border-l border-[var(--color-surface-border)] pl-4">
-                <button 
-                  onClick={() => setShowDropdown(showDropdown === 'user' ? false : 'user')}
-                  className="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-[var(--color-surface)] transition-colors"
+              {/* User Avatar Menu */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserMenu(!showUserMenu);
+                    setShowNotifications(false);
+                  }}
+                  className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full hover:bg-white/80 transition-colors border border-stone-200/80 cursor-pointer"
                 >
                   {user.profile_picture ? (
-                    <img src={user.profile_picture} alt="Profile" className="w-8 h-8 rounded-full border border-[var(--color-surface-border)]" />
+                    <img
+                      src={user.profile_picture}
+                      alt="Avatar"
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
                   ) : (
-                    <UserCircle className="w-8 h-8 text-gray-400" />
+                    <UserCircle className="w-6 h-6 text-stone-500" />
                   )}
-                  <span className="text-gray-200 hidden md:block text-sm font-medium">{user.full_name}</span>
+                  <span className="text-xs font-medium text-stone-800 hidden md:block max-w-[120px] truncate">
+                    {user.full_name || user.email}
+                  </span>
                 </button>
 
-                {showDropdown === 'user' && (
-                  <div className="absolute right-0 mt-2 w-56 bg-[#09090b] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
-                    <div className="p-4 border-b border-white/5 bg-white/5">
-                      <p className="font-medium text-white truncate">{user.full_name}</p>
-                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden z-50 p-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-3 py-2 border-b border-stone-100">
+                      <p className="text-xs font-semibold text-stone-900 truncate">
+                        {user.full_name || "User"}
+                      </p>
+                      <p className="text-[11px] text-stone-500 truncate">{user.email}</p>
                     </div>
-                    <div className="p-2">
-                      <Link 
-                        href="/settings" 
-                        onClick={() => setShowDropdown(false)}
-                        className="flex items-center px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-                      >
-                        <UserCircle className="w-4 h-4 mr-3" />
-                        Account Settings
-                      </Link>
-                    </div>
-                    <div className="p-2 border-t border-white/5">
-                      <button 
-                        onClick={logout}
-                        className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                      >
-                        <LogOut className="w-4 h-4 mr-3" />
-                        Sign Out
-                      </button>
-                    </div>
+                    <Link
+                      href="/settings"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:bg-stone-100 transition-colors"
+                    >
+                      <UserCircle className="w-3.5 h-3.5 mr-2 text-stone-500" />
+                      Account & Face ID
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        logout();
+                      }}
+                      className="flex items-center w-full px-3 py-2 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5 mr-2" />
+                      Sign Out
+                    </button>
                   </div>
                 )}
               </div>
+
             </div>
           ) : (
-            <Link href="/login" className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors shadow-lg shadow-purple-500/20">
+            <Link
+              href="/login"
+              className="px-4 py-1.5 bg-[#C25E2E] hover:bg-[#A34A20] text-white text-xs font-medium rounded-lg shadow-sm transition-all"
+            >
               Sign In
             </Link>
           )}
@@ -155,3 +221,4 @@ export default function Navbar() {
     </header>
   );
 }
+

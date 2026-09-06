@@ -12,6 +12,9 @@ from api.guest import router as guest_router
 from api.members import router as members_router
 from api.requests import router as requests_router
 from api.notifications import router as notifications_router
+from api.memories import router as memories_router
+from api.companions import router as companions_router
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -26,6 +29,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Required for Authlib (Google OAuth)
@@ -42,6 +46,10 @@ app.include_router(requests_router, prefix="/events", tags=["requests"])
 app.include_router(media_router, prefix="/media", tags=["media"])
 app.include_router(guest_router, prefix="/guest", tags=["guest"])
 app.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
+app.include_router(memories_router, prefix="/memories", tags=["memories"])
+app.include_router(memories_router, prefix="/reels", tags=["reels"])
+app.include_router(companions_router, prefix="/companions", tags=["companions"])
+
 
 import os
 os.makedirs("uploads", exist_ok=True)

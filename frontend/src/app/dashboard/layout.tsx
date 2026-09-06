@@ -29,15 +29,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const mainNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Events', href: '/dashboard/events', icon: Calendar },
-    { name: 'AI Studio', href: '/dashboard/ai', icon: Sparkles },
-    { name: 'Collaborators', href: '/dashboard/collaborators', icon: Users },
-    { name: 'Financials', href: '/dashboard/financials', icon: CreditCard },
   ];
   
   const bottomNavigation = [
     { name: 'Settings', href: '/settings', icon: Settings },
-    { name: 'Help Center', href: '#', icon: HelpCircle },
   ];
 
   return (

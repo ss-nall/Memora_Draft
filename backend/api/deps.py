@@ -15,6 +15,11 @@ reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="/auth/login"
 )
 
+reusable_oauth2_optional = OAuth2PasswordBearer(
+    tokenUrl="/auth/login",
+    auto_error=False
+)
+
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
 ) -> User:
@@ -34,6 +39,22 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+def get_optional_current_user(
+    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2_optional)
+) -> User | None:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=["HS256"]
+        )
+        token_data = TokenPayload(**payload)
+        if payload.get("type") != "access":
+            return None
+        return db.query(User).filter(User.id == token_data.sub).first()
+    except Exception:
+        return None
 
 def require_event_role(allowed_roles: list[EventRole]):
     """

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, User } from "lucide-react";
 import Link from "next/link";
-import api from "@/lib/api";
+import api, { formatApiError } from "@/lib/api";
 import { motion } from "framer-motion";
 
 export default function RegisterPage() {
@@ -33,7 +33,7 @@ export default function RegisterPage() {
       // After successful registration, send them to login
       router.push("/login");
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Registration failed. Please try again.");
+      setError(formatApiError(err, "Registration failed. Please try again."));
     } finally {
       setIsLoading(false);
     }

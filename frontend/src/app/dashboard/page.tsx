@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/Button";
-import { Plus, Upload, Share2, MoreHorizontal, Bell, Search, BarChart2, Zap } from "lucide-react";
+import { Plus, UploadCloud, QrCode, Calendar, Images, Sparkles, ArrowRight, Copy, Check, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { CreateEventModal } from "@/components/CreateEventModal";
+import { QRCodeModal } from "@/components/QRCodeModal";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
@@ -28,7 +29,9 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [qrModalEvent, setQrModalEvent] = useState<{ id: string; title: string; invite_code: string } | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -39,7 +42,9 @@ export default function DashboardPage() {
     try {
       const [eventsResponse, analyticsResponse] = await Promise.all([
         api.get("/events/"),
-        api.get("/events/analytics").catch(() => ({ data: { active_events: 0, asset_volume: 0, recognition_accuracy: 99.8 } }))
+        api.get("/events/analytics").catch(() => ({
+          data: { active_events: 0, asset_volume: 0, recognition_accuracy: 99.8 }
+        }))
       ]);
       setEvents(eventsResponse.data);
       setAnalytics(analyticsResponse.data);
@@ -50,202 +55,235 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
   return (
-    <div className="space-y-12 pb-24">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-10 space-y-8 text-stone-900">
+      
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-stone-200">
         <div>
-          <div className="text-[10px] font-bold text-[#D33B31] tracking-[0.2em] uppercase mb-2">Analytics Console</div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#14241B] flex items-center gap-4">
-            Overview
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-[#C25E2E] mb-1">
+            Host & Photography Portal
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-stone-900">
+            Organizer Dashboard
           </h1>
         </div>
-        
-        <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-           <div className="flex items-center gap-2 border-r border-gray-100 pr-4">
-             <div className="w-2 h-2 rounded-full bg-green-500" />
-             <span className="text-xs font-medium text-gray-600">System Online</span>
-           </div>
-           <button className="text-gray-400 hover:text-[#14241B] transition-colors relative px-2">
-             <Bell className="w-5 h-5" />
-             <div className="absolute top-0 right-1 w-2 h-2 bg-[#D33B31] rounded-full border border-white" />
-           </button>
-           {user?.profile_picture ? (
-              <img src={user.profile_picture} alt="Profile" className="w-7 h-7 rounded-full ml-2" />
-           ) : (
-              <div className="w-7 h-7 rounded-full bg-gray-200 ml-2" />
-           )}
-        </div>
+
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="btn-accent shadow-sm text-xs font-semibold px-5 h-11 flex items-center gap-2 cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create New Event</span>
+        </Button>
       </div>
 
-      {/* Analytics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Analytics Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         
-        {/* Active Events */}
-        <div className="bg-white rounded-[2rem] p-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-gray-100/50 flex flex-col justify-between h-[240px]">
-          <div className="flex justify-between items-start">
-             <span className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Active Events</span>
-             <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">+12.4%</span>
+        {/* Metric 1: Active Events */}
+        <div className="glass-card p-6 border border-stone-900/[0.06] rounded-2xl flex flex-col justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+            Total Events
+          </span>
+          <div className="text-4xl font-bold text-stone-900 my-2">
+            {events.length}
           </div>
-          <div className="flex justify-between items-end mt-4">
-            <div className="text-6xl font-bold tracking-tighter text-[#14241B]">{analytics?.active_events ?? 0}</div>
-            <div className="w-16 h-8 opacity-50"><svg viewBox="0 0 100 30" className="w-full h-full stroke-gray-400 fill-none stroke-2"><path d="M0,15 Q25,5 50,15 T100,15" /></svg></div>
-          </div>
-          <div className="mt-8 pt-6 border-t border-gray-100 text-[11px] text-gray-400">
-            84% capacity utilized across active sessions
-          </div>
-        </div>
-        
-        {/* Asset Volume */}
-        <div className="bg-white rounded-[2rem] p-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-gray-100/50 flex flex-col justify-between h-[240px] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-red-50 to-transparent opacity-50 rounded-full blur-3xl -z-10" />
-          <div className="flex justify-between items-start">
-             <span className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Asset Volume</span>
-             <span className="px-2 py-1 bg-red-100 text-[#D33B31] text-xs font-bold rounded-md">+2.4k</span>
-          </div>
-          <div className="flex justify-between items-end mt-4">
-            <div className="text-6xl font-bold tracking-tighter text-[#14241B]">
-              {analytics?.asset_volume !== undefined 
-                ? (analytics.asset_volume > 1000 ? (analytics.asset_volume/1000).toFixed(1) + 'k' : analytics.asset_volume) 
-                : '0'}
-            </div>
-            <div className="w-12 h-12 rounded-full border-4 border-red-100 flex items-center justify-center relative">
-               <div className="absolute inset-0 rounded-full border-4 border-[#D33B31] border-l-transparent border-b-transparent transform rotate-45" />
-               <span className="text-[10px] font-bold text-[#D33B31]">75%</span>
-            </div>
-          </div>
-          <div className="mt-8 pt-6 border-t border-gray-100 text-[11px] text-gray-400">
-            High storage efficiency (2.4ms avg retrieval)
+          <div className="text-[11px] text-stone-500">
+            Managed galleries & active guest access
           </div>
         </div>
 
-        {/* Recognition Accuracy */}
-        <div className="bg-white rounded-[2rem] p-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-gray-100/50 flex flex-col justify-between h-[240px]">
-          <div className="flex justify-between items-start">
-             <span className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Recognition Accuracy</span>
-             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
-               <ScanFaceIcon className="w-4 h-4" />
-             </div>
+        {/* Metric 2: Asset Volume */}
+        <div className="glass-card p-6 border border-stone-900/[0.06] rounded-2xl flex flex-col justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+            Indexed Media Assets
+          </span>
+          <div className="text-4xl font-bold text-stone-900 my-2">
+            {analytics?.asset_volume ?? 0}
           </div>
-          <div className="flex justify-between items-end mt-4">
-            <div className="text-6xl font-bold tracking-tighter text-[#14241B]">
-              {analytics?.recognition_accuracy ?? 99.8}<span className="text-3xl text-gray-400 font-normal">%</span>
-            </div>
-          </div>
-          <div className="mt-6 space-y-4">
-            <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-               <div className="bg-[#14241B] h-full rounded-full" style={{ width: `${analytics?.recognition_accuracy ?? 99.8}%` }} />
-            </div>
-            <div className="flex justify-between text-[11px] text-gray-400 font-medium">
-              <span>8.2k entities indexed</span>
-              <span>AI Active</span>
-            </div>
+          <div className="text-[11px] text-stone-500">
+            Photos & video clips processed in FAISS
           </div>
         </div>
+
+        {/* Metric 3: AI Engine */}
+        <div className="glass-card p-6 border border-stone-900/[0.06] rounded-2xl flex flex-col justify-between">
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              Facial AI Engine
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          </div>
+          <div className="text-4xl font-bold text-stone-900 my-2">
+            512-D
+          </div>
+          <div className="text-[11px] text-stone-500">
+            InsightFace Buffalo_L • Cosine Distance
+          </div>
+        </div>
+
       </div>
 
-      {/* Active Productions */}
-      <div className="pt-8">
-        <div className="flex justify-between items-end mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-[#14241B]">Active Productions</h2>
-          <Link href="/dashboard/events" className="text-sm font-semibold text-[#D33B31] hover:text-red-700 flex items-center">
-            Full Repository &rarr;
-          </Link>
+      {/* Events List Section */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-stone-900">
+            Your Event Galleries
+          </h2>
+          <span className="text-xs text-stone-500 font-medium">
+            {events.length} {events.length === 1 ? "Event" : "Events"}
+          </span>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-pulse">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-80 bg-white rounded-3xl border border-gray-100" />
+              <div key={i} className="h-64 bg-white/70 rounded-2xl border border-stone-200" />
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 border-dashed">
-            <div className="mx-auto w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4 text-gray-400">
-              <CameraIcon className="w-6 h-6" />
+          <div className="glass-card text-center py-16 px-4 rounded-3xl border border-stone-200 border-dashed">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/60 text-[#C25E2E] mx-auto flex items-center justify-center mb-3">
+              <Images className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-[#14241B]">No active productions</h3>
-            <p className="text-gray-500 mb-6 text-sm">Create an event to start processing photos.</p>
-            <Button onClick={() => setIsModalOpen(true)} className="bg-[#14241B] text-white rounded-xl hover:bg-[#1E3629]">
-              New Production
+            <h3 className="text-base font-semibold text-stone-900">No events created yet</h3>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto mt-1 mb-5">
+              Create an event to upload event photos and generate invite QR codes for your guests.
+            </p>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="btn-accent text-xs font-semibold"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Create First Event
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {events.map((event, i) => (
               <motion.div
                 key={event.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="bg-white rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow"
+                transition={{ duration: 0.25, delay: i * 0.04 }}
+                className="glass-card p-6 rounded-2xl border border-stone-900/[0.08] shadow-sm flex flex-col justify-between"
               >
-                {/* Mock Image Header */}
-                <div className="h-48 bg-gray-100 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-[#14241B]/20 to-transparent mix-blend-overlay" />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-gray-700 flex items-center gap-1.5 shadow-sm">
-                    <div className="w-1.5 h-1.5 bg-[#D33B31] rounded-full animate-pulse" />
-                    LIVE
-                  </div>
-                </div>
-                
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-[#14241B] mb-2 truncate">{event.title}</h3>
-                  <div className="flex items-center text-xs text-gray-500 font-medium mb-6 gap-2">
-                    <span>{event.description || "Location TBD"}</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-300" />
-                    <span>{format(new Date(event.date), "MMM d, yyyy")}</span>
-                  </div>
+                <div className="space-y-3">
                   
-                  <div className="mt-auto flex gap-3">
-                    <Link href={`/dashboard/${event.id}`} className="flex-1">
-                      <Button className="w-full bg-[#14241B] text-white hover:bg-[#1E3629] rounded-xl h-11 shadow-sm font-semibold">
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload
-                      </Button>
-                    </Link>
-                    <Button variant="outline" className="w-11 h-11 rounded-xl border-gray-200 text-gray-600 p-0 flex-shrink-0 hover:bg-gray-50">
-                      <Share2 className="h-4 w-4" />
-                    </Button>
+                  {/* Event Title & Date */}
+                  <div>
+                    <h3 className="text-lg font-bold text-stone-900 truncate">
+                      {event.title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-xs text-stone-500 mt-1">
+                      <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                      <span>
+                        {event.date ? format(new Date(event.date), "MMM d, yyyy") : "Date TBD"}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Description */}
+                  {event.description && (
+                    <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+                      {event.description}
+                    </p>
+                  )}
+
+                  {/* Invite Code Pill */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-stone-50 border border-stone-200/80">
+                      <div>
+                        <span className="text-[10px] uppercase font-mono text-stone-400 block font-semibold">
+                          Invite Code
+                        </span>
+                        <span className="text-xs font-mono font-bold text-stone-900 tracking-wider">
+                          {event.invite_code}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCode(event.invite_code)}
+                        className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-white rounded-lg transition-colors cursor-pointer"
+                        title="Copy Invite Code"
+                      >
+                        {copiedCode === event.invite_code ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
+
+                {/* Actions Grid */}
+                <div className="pt-6 border-t border-stone-100 mt-6 flex items-center gap-2">
+                  <Link href={`/dashboard/${event.id}`} className="flex-1">
+                    <button
+                      type="button"
+                      className="w-full h-10 px-3 bg-[#C25E2E] hover:bg-[#A34A20] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      <span>Upload Media</span>
+                    </button>
+                  </Link>
+
+                  <Link href={`/dashboard/${event.id}/gallery`}>
+                    <button
+                      type="button"
+                      className="h-10 px-3 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-medium rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      title="View Full Gallery"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Gallery</span>
+                    </button>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setQrModalEvent({ id: event.id, title: event.title, invite_code: event.invite_code })}
+                    className="h-10 w-10 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 rounded-xl transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                    title="View QR Code"
+                  >
+                    <QrCode className="w-4 h-4" />
+                  </button>
+                </div>
+
               </motion.div>
             ))}
           </div>
         )}
       </div>
 
+      {/* Create Event Modal */}
       <CreateEventModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         onSuccess={() => {
-          setIsModalOpen(false);
+          setIsCreateModalOpen(false);
           fetchData();
         }}
       />
+
+      {/* QR Code Signage Modal */}
+      {qrModalEvent && (
+        <QRCodeModal
+          isOpen={true}
+          onClose={() => setQrModalEvent(null)}
+          eventName={qrModalEvent.title}
+          inviteCode={qrModalEvent.invite_code}
+        />
+      )}
+
     </div>
   );
-}
-
-function ScanFaceIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-      <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-      <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-      <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-      <path d="M9 9h.01" />
-      <path d="M15 9h.01" />
-    </svg>
-  )
-}
-
-function CameraIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-      <circle cx="12" cy="13" r="3" />
-    </svg>
-  )
 }

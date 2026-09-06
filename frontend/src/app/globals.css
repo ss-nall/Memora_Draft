@@ -3,64 +3,77 @@
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: #14241B; /* Deep Forest Green */
-  --color-primary-hover: #1E3629;
-  --color-secondary: #0ea5e9;
-  --color-accent: #D33B31; /* Soft Coral/Red */
+  --color-primary: #C25E2E; /* Warm Terracotta / Amber */
+  --color-primary-hover: #A34A20;
+  --color-accent: #D97706; /* Amber Accent */
   
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #FAFAF8;
-  --color-surface-border: rgba(0, 0, 0, 0.06);
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-hover: rgba(255, 255, 255, 0.95);
+  --color-surface-border: rgba(28, 25, 23, 0.06);
 }
 
 :root {
-  /* Premium Forest Green & Cream Theme */
-  --background: #FCFAEE; /* Off-white / Cream */
-  --foreground: #1C2321; /* Dark Charcoal/Green */
+  /* Warm off-white base & rich warm charcoal typography */
+  --background: #F5F4F0;
+  --foreground: #1C1917;
+  --surface: #FFFFFF;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  /* Very soft background gradient to match the settings page pink/cream vibe globally but subtly */
-  background-image: radial-gradient(circle at 100% 0%, rgba(211, 59, 49, 0.03) 0%, transparent 40%),
-                    radial-gradient(circle at 0% 100%, rgba(20, 36, 27, 0.02) 0%, transparent 40%);
-  background-attachment: fixed;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Glassmorphism Utility / Soft White Card */
-.glass-panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: 1.5rem; /* More rounded like the mockups */
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+/* Light Glassmorphism Card Style */
+.glass-card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(28, 25, 23, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03), 0 2px 6px -1px rgba(28, 25, 23, 0.02);
+  border-radius: 1rem;
 }
 
-.glass-panel-hover:hover {
-  background: var(--color-surface-hover);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+.glass-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Rounded Pill Button Style */
-.btn-pill {
-  border-radius: 9999px; /* Full rounded */
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(28, 25, 23, 0.12);
+  box-shadow: 0 10px 30px -4px rgba(28, 25, 23, 0.06), 0 4px 12px -2px rgba(28, 25, 23, 0.03);
 }
 
-/* Hide scrollbar for clean look */
+/* Primary Accent Button */
+.btn-accent {
+  background-color: #C25E2E;
+  color: #FFFFFF;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.btn-accent:hover {
+  background-color: #A34A20;
+}
+
+/* Subtle Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(20, 36, 27, 0.15);
-  border-radius: 10px;
+  background: rgba(28, 25, 23, 0.12);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(20, 36, 27, 0.25);
+  background: rgba(28, 25, 23, 0.22);
 }
+

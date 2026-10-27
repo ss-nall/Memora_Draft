@@ -22,10 +22,16 @@ app = FastAPI(
     description="Memora - AI-powered Event Memory Platform API"
 )
 
-# Set all CORS enabled origins
+# Set all CORS enabled origins (allow localhost, local network IPs for mobile testing, and capacitor)
+cors_origins = [str(origin).rstrip("/") for origin in settings.BACKEND_CORS_ORIGINS]
+for default_origin in ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost", "capacitor://localhost"]:
+    if default_origin not in cors_origins:
+        cors_origins.append(default_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(origin).rstrip("/") for origin in settings.BACKEND_CORS_ORIGINS],
+    allow_origins=cors_origins,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?|capacitor://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

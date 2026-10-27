@@ -72,7 +72,7 @@ export default function Home() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Enter Event Code (e.g. WED-892)"
+                  placeholder="Enter Event Code (e.g. DEMO-2026)"
                   value={quickCode}
                   onChange={(e) => setQuickCode(e.target.value.toUpperCase())}
                   className="flex-1 h-11 px-3.5 rounded-xl border border-stone-300 bg-white text-xs font-mono tracking-wider placeholder:font-sans placeholder:text-stone-400 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20"
@@ -83,6 +83,16 @@ export default function Home() {
                 >
                   <span>Join</span>
                   <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[11px] text-stone-500">Quick Event:</span>
+                <button
+                  type="button"
+                  onClick={() => setQuickCode("DEMO-2026")}
+                  className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-[#C25E2E] border border-amber-600/20 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                >
+                  DEMO-2026
                 </button>
               </div>
             </form>

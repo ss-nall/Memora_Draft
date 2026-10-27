@@ -10,7 +10,7 @@ from models.event import Event
 from models.user import User
 from models.event_member import EventMember, EventRole
 from schemas.event import EventCreate, EventResponse, EventUpdate
-from api.deps import get_current_user, require_event_role
+from api.deps import get_current_user, get_optional_current_user, require_event_role
 
 router = APIRouter()
 
@@ -24,10 +24,10 @@ def create_event(
     *,
     db: Session = Depends(get_db),
     event_in: EventCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> Any:
     """
-    Create a new event. The logged-in user becomes the Event Admin.
+    Create a new event. The logged-in user or demo admin becomes the Event Admin.
     """
     invite_code = generate_invite_code()
     while db.query(Event).filter(Event.invite_code == invite_code).first() is not None:
@@ -44,13 +44,15 @@ def create_event(
     db.refresh(event)
 
     # Assign Admin role
-    member = EventMember(
-        event_id=event.id,
-        user_id=current_user.id,
-        role=EventRole.ADMIN
-    )
-    db.add(member)
-    db.commit()
+    admin_user = current_user or db.query(User).filter(User.email == "demo@memora.ai").first()
+    if admin_user:
+        member = EventMember(
+            event_id=event.id,
+            user_id=admin_user.id,
+            role=EventRole.ADMIN
+        )
+        db.add(member)
+        db.commit()
 
     return event
 
@@ -82,18 +84,20 @@ def update_event(
 @router.get("/analytics")
 def get_analytics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> Any:
     """
-    Get dashboard analytics for the current user.
+    Get dashboard analytics for the current user or demo.
     """
-    memberships = db.query(EventMember).filter(EventMember.user_id == current_user.id).all()
-    event_ids = [m.event_id for m in memberships]
-    
-    active_events = len(event_ids)
-    
     from models.media import Media
-    asset_volume = db.query(Media).filter(Media.event_id.in_(event_ids)).count() if event_ids else 0
+    if current_user:
+        memberships = db.query(EventMember).filter(EventMember.user_id == current_user.id).all()
+        event_ids = [m.event_id for m in memberships]
+        active_events = len(event_ids)
+        asset_volume = db.query(Media).filter(Media.event_id.in_(event_ids)).count() if event_ids else 0
+    else:
+        active_events = db.query(Event).count()
+        asset_volume = db.query(Media).count()
     
     return {
         "active_events": active_events,
@@ -106,14 +110,17 @@ def read_events(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> Any:
     """
-    Retrieve all events where the current user is a member (any role).
+    Retrieve all events where the current user is a member, or all events if demo/unauthenticated.
     """
-    memberships = db.query(EventMember).filter(EventMember.user_id == current_user.id).offset(skip).limit(limit).all()
-    event_ids = [m.event_id for m in memberships]
-    events = db.query(Event).filter(Event.id.in_(event_ids)).all()
+    if current_user:
+        memberships = db.query(EventMember).filter(EventMember.user_id == current_user.id).offset(skip).limit(limit).all()
+        event_ids = [m.event_id for m in memberships]
+        events = db.query(Event).filter(Event.id.in_(event_ids)).all()
+    else:
+        events = db.query(Event).offset(skip).limit(limit).all()
     return events
 
 @router.get("/{event_id}", response_model=EventResponse)

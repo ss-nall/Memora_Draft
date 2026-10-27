@@ -46,6 +46,20 @@ class CompileMemoryRequest(BaseModel):
     memory_type: str = "AI_REEL"
     face_embedding: Optional[List[float]] = None
 
+THREAD_TASKS: dict[str, dict] = {}
+
+def run_in_thread(task_id: str, fn, *args, **kwargs):
+    THREAD_TASKS[task_id] = {"status": "PENDING", "result": None, "error": None}
+    def worker():
+        try:
+            res = fn(*args, **kwargs)
+            THREAD_TASKS[task_id] = {"status": "SUCCESS", "result": res, "error": None}
+        except Exception as e:
+            THREAD_TASKS[task_id] = {"status": "FAILURE", "result": None, "error": str(e)}
+    import threading
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+
 @router.post("/compile")
 def compile_reel_shortcut(
     payload: CompileMemoryRequest,
@@ -64,23 +78,43 @@ def compile_reel_shortcut(
     
     if payload.memory_type == "VIDEO_MOMENT":
         from worker.tasks import compile_video_moments
-        task = compile_video_moments.delay(
-            user_id=user_id_str,
-            event_id=str(event.id),
-            invite_code=event.invite_code,
-            target_embedding=payload.face_embedding
-        )
+        try:
+            task = compile_video_moments.apply_async(
+                kwargs={
+                    "user_id": user_id_str,
+                    "event_id": str(event.id),
+                    "invite_code": event.invite_code,
+                    "target_embedding": payload.face_embedding
+                },
+                connect_timeout=1.0
+            )
+            task_id = task.id
+            task_status = task.status
+        except Exception:
+            task_id = str(uuid.uuid4())
+            task_status = "PENDING"
+            run_in_thread(task_id, compile_video_moments, user_id_str, str(event.id), event.invite_code, payload.face_embedding)
     else:
         from worker.tasks import compile_ai_memory_reel
-        task = compile_ai_memory_reel.delay(
-            user_id=user_id_str,
-            event_id=str(event.id),
-            invite_code=event.invite_code,
-            target_embedding=payload.face_embedding,
-            settings={}
-        )
+        try:
+            task = compile_ai_memory_reel.apply_async(
+                kwargs={
+                    "user_id": user_id_str,
+                    "event_id": str(event.id),
+                    "invite_code": event.invite_code,
+                    "target_embedding": payload.face_embedding,
+                    "settings_dict": {}
+                },
+                connect_timeout=1.0
+            )
+            task_id = task.id
+            task_status = task.status
+        except Exception:
+            task_id = str(uuid.uuid4())
+            task_status = "PENDING"
+            run_in_thread(task_id, compile_ai_memory_reel, user_id_str, str(event.id), event.invite_code, payload.face_embedding, {})
 
-    return {"task_id": task.id, "status": task.status, "message": "Highlight compilation task dispatched"}
+    return {"task_id": task_id, "status": task_status, "message": "Highlight compilation task dispatched"}
 
 @router.post("/generate", response_model=MemoryTaskResponse)
 def generate_memory(
@@ -94,34 +128,62 @@ def generate_memory(
     user_id_str = str(current_user.id) if current_user else None
     
     if request.memory_type == MemoryType.AI_REEL:
-        # Import task inside function to prevent circular imports
         from worker.tasks import compile_ai_memory_reel
         settings_dict = request.settings.model_dump() if request.settings else {}
-        task = compile_ai_memory_reel.delay(
-            user_id=user_id_str,
-            event_id=str(request.event_id),
-            invite_code=request.invite_code,
-            target_embedding=request.target_embedding,
-            settings=settings_dict
-        )
+        try:
+            task = compile_ai_memory_reel.apply_async(
+                kwargs={
+                    "user_id": user_id_str,
+                    "event_id": str(request.event_id),
+                    "invite_code": request.invite_code,
+                    "target_embedding": request.target_embedding,
+                    "settings_dict": settings_dict
+                },
+                connect_timeout=1.0
+            )
+            task_id = task.id
+            task_status = task.status
+        except Exception:
+            task_id = str(uuid.uuid4())
+            task_status = "PENDING"
+            run_in_thread(task_id, compile_ai_memory_reel, user_id_str, str(request.event_id), request.invite_code, request.target_embedding, settings_dict)
     elif request.memory_type == MemoryType.VIDEO_MOMENT:
         from worker.tasks import compile_video_moments
-        task = compile_video_moments.delay(
-            user_id=user_id_str,
-            event_id=str(request.event_id),
-            invite_code=request.invite_code,
-            target_embedding=request.target_embedding
-        )
+        try:
+            task = compile_video_moments.apply_async(
+                kwargs={
+                    "user_id": user_id_str,
+                    "event_id": str(request.event_id),
+                    "invite_code": request.invite_code,
+                    "target_embedding": request.target_embedding
+                },
+                connect_timeout=1.0
+            )
+            task_id = task.id
+            task_status = task.status
+        except Exception:
+            task_id = str(uuid.uuid4())
+            task_status = "PENDING"
+            run_in_thread(task_id, compile_video_moments, user_id_str, str(request.event_id), request.invite_code, request.target_embedding)
     else:
         raise HTTPException(status_code=400, detail="Invalid memory type")
 
-    return {"task_id": task.id, "status": task.status}
+    return {"task_id": task_id, "status": task_status}
 
 @router.get("/tasks/{task_id}")
 def get_task_status(task_id: str) -> Any:
     """
     Check the status and result of a memory compilation task.
     """
+    if task_id in THREAD_TASKS:
+        item = THREAD_TASKS[task_id]
+        return {
+            "task_id": task_id,
+            "status": item["status"],
+            "result": item["result"],
+            "error": item["error"]
+        }
+
     res = AsyncResult(task_id, app=celery_app)
     response = {
         "task_id": task_id,

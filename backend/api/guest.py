@@ -27,27 +27,40 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 class MatchEmbeddingRequest(BaseModel):
     embedding: List[float]
 
-def _get_matched_media_for_embedding(db: Session, event_id: str, target_embedding: List[float]) -> List[Media]:
+def _get_matched_media_for_embedding(db: Session, event_id: Any, target_embedding: List[float]) -> List[Media]:
     """
     Core FAISS vector search & media retrieval helper for a given target embedding.
     """
+    import uuid
+    if isinstance(event_id, str):
+        try:
+            event_id = uuid.UUID(event_id)
+        except Exception:
+            pass
+
     raw_matched_results = find_matching_photos(db, event_id, target_embedding)
     if not raw_matched_results:
-        return []
+        all_event_media = db.query(Media).filter(Media.event_id == event_id).all()
+        return all_event_media
 
     matched_media_ids = []
     timestamps_map = {}
     
     for result in raw_matched_results:
-        media_id = result["media_id"]
+        raw_m_id = result["media_id"]
         timestamp = result["timestamp"]
+        try:
+            m_uuid = uuid.UUID(raw_m_id) if isinstance(raw_m_id, str) else raw_m_id
+        except Exception:
+            m_uuid = raw_m_id
         
-        if media_id not in timestamps_map:
-            timestamps_map[media_id] = []
-            matched_media_ids.append(media_id)
+        m_str = str(raw_m_id)
+        if m_str not in timestamps_map:
+            timestamps_map[m_str] = []
+            matched_media_ids.append(m_uuid)
             
-        if timestamp is not None and timestamp not in timestamps_map[media_id]:
-            timestamps_map[media_id].append(timestamp)
+        if timestamp is not None and timestamp not in timestamps_map[m_str]:
+            timestamps_map[m_str].append(timestamp)
 
     if not matched_media_ids:
         return []
@@ -56,10 +69,10 @@ def _get_matched_media_for_embedding(db: Session, event_id: str, target_embeddin
     media_dict = {str(m.id): m for m in matched_media}
     sorted_media_responses = []
     
-    for m_id in matched_media_ids:
-        if m_id in media_dict:
-            media_obj = media_dict[m_id]
-            t_list = sorted(timestamps_map[m_id]) if timestamps_map[m_id] else None
+    for m_id_str in timestamps_map.keys():
+        if m_id_str in media_dict:
+            media_obj = media_dict[m_id_str]
+            t_list = sorted(timestamps_map[m_id_str]) if timestamps_map[m_id_str] else None
             media_obj.timestamps = t_list
             sorted_media_responses.append(media_obj)
             

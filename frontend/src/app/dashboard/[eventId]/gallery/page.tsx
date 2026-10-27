@@ -63,8 +63,19 @@ export default function EventGalleryPage({ params }: { params: Promise<{ eventId
 
   const getImageUrl = (photo: Media) => {
     if (photo.cloudinary_url) return photo.cloudinary_url;
-    const normalizedPath = photo.storage_url.replace(/\\/g, "/");
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const url = photo.storage_url || "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+      return url;
+    }
+    const normalizedPath = url.replace(/\\/g, "/");
+    let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    if (typeof window !== "undefined") {
+      if (window.location.hostname === "10.0.2.2") {
+        baseUrl = "http://10.0.2.2:8000";
+      } else if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1" && window.location.hostname !== "") {
+        baseUrl = `http://${window.location.hostname}:8000`;
+      }
+    }
     return `${baseUrl}/${normalizedPath}`;
   };
 

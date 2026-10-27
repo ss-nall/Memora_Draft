@@ -4,17 +4,19 @@ import { useState, useCallback, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, UploadCloud, FileImage, FileVideo, Loader2, CheckCircle2, 
-  Printer, X, Trash2, Eye, Sparkles, AlertCircle, Copy, Check, Users, Clock
+  Printer, X, Trash2, Eye, Sparkles, AlertCircle, Copy, Check, Users, Clock,
+  Upload, Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import api from "@/lib/api";
+import api, { formatApiError } from "@/lib/api";
 import { QRCodeSVG } from "qrcode.react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function EventUploadPage({ params }: { params: Promise<{ eventId: string }> }) {
   const resolvedParams = use(params);
   const eventId = resolvedParams.eventId;
+  const router = useRouter();
   
   const [eventData, setEventData] = useState<any>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
@@ -112,16 +114,21 @@ export default function EventUploadPage({ params }: { params: Promise<{ eventId:
       formData.append("event_id", eventId);
 
       try {
-        await api.post("/media/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await api.post("/media/upload", formData);
         successCount++;
         setUploadProgress(Math.round(((i + 1) / files.length) * 100));
       } catch (err: any) {
         console.error(`Failed to upload ${file.name}`, err);
-        setError(`Failed to upload ${file.name}. Continuing with remaining files...`);
+        if (err.response?.status === 401) {
+          setError("Your session has expired or you are not signed in. Please sign in to upload photos.");
+          setIsUploading(false);
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
+          return;
+        }
+        const errorDetail = formatApiError(err, `Failed to upload ${file.name}`);
+        setError(`${errorDetail}. Continuing with remaining files...`);
       }
     }
 
@@ -263,19 +270,33 @@ export default function EventUploadPage({ params }: { params: Promise<{ eventId:
           Supports JPEG, PNG, WEBP images and MP4, MOV video clips. Files are cataloged with EXIF orientation.
         </p>
 
-        <label className="relative cursor-pointer">
-          <Button type="button" className="btn-accent text-xs font-semibold px-5 h-10 cursor-pointer" asChild>
-            <span>Browse Files</span>
-          </Button>
-          <input
-            type="file"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            multiple
-            accept="image/*,video/*"
-            onChange={handleFileSelect}
-            disabled={isUploading}
-          />
-        </label>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <label className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#C25E2E] hover:bg-[#A34A20] text-white text-xs font-semibold rounded-xl shadow-xs cursor-pointer transition-colors">
+            <Upload className="w-3.5 h-3.5" />
+            <span>Choose Photos & Videos</span>
+            <input
+              type="file"
+              className="sr-only"
+              multiple
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+            />
+          </label>
+
+          <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold rounded-xl shadow-xs cursor-pointer transition-colors">
+            <Camera className="w-3.5 h-3.5 text-stone-600" />
+            <span>Take Photo (Camera)</span>
+            <input
+              type="file"
+              className="sr-only"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+            />
+          </label>
+        </div>
       </div>
 
       {/* Selected Files Staging List */}

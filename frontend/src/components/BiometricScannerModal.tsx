@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, X, RefreshCw, AlertCircle, Scan, Zap, CheckCircle2, UserPlus, ArrowRight } from "lucide-react";
+import { Camera, X, RefreshCw, AlertCircle, Scan, Zap, CheckCircle2, UserPlus, ArrowRight, Image as ImageIcon } from "lucide-react";
 import api, { formatApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -243,6 +243,66 @@ export function BiometricScannerModal({
     }
   };
 
+  const handleSelectSelfieFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCapturedBlob(file);
+    if (mode === "capture") {
+      playTechAudio("success");
+      setScanStep("success");
+      setTimeout(() => {
+        const cb = onCaptureComplete || onCaptured;
+        if (cb) cb(file);
+        onClose();
+      }, 500);
+      return;
+    }
+
+    setIsScanning(true);
+    setScanStep("matching");
+    setErrorMessage("");
+    playTechAudio("scan");
+
+    try {
+      if (mode === "enroll") {
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        const res = await api.post("/auth/register-face", formData);
+        playTechAudio("success");
+        setScanStep("success");
+        setTimeout(() => {
+          alert(res.data.message || "Face ID successfully enrolled!");
+          onClose();
+        }, 500);
+      } else {
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        const res = await api.post("/auth/face-login", formData);
+        const { access_token, refresh_token, user } = res.data;
+        playTechAudio("success");
+        setScanStep("success");
+        setMatchedUserName(user.full_name);
+        await login(access_token, refresh_token, user);
+        setTimeout(() => {
+          onClose();
+          router.push("/dashboard");
+        }, 800);
+      }
+    } catch (err: any) {
+      playTechAudio("error");
+      setScanStep("failure");
+      if (err.response?.status === 404) {
+        setErrorMessage("Face not recognized in our database. Please enroll below.");
+        setShowQuickEnroll(true);
+      } else {
+        setErrorMessage(formatApiError(err, "Face match failed. Try another photo."));
+      }
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   const handleQuickEnrollSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!capturedBlob || !enrollEmail || !enrollName) return;
@@ -462,10 +522,21 @@ export function BiometricScannerModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-medium transition-colors"
+                  className="px-3.5 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-medium transition-colors"
                 >
                   Cancel
                 </button>
+
+                <label className="px-3 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
+                  <ImageIcon className="w-3.5 h-3.5 text-[#C25E2E]" />
+                  <span>Choose Photo</span>
+                  <input
+                    type="file"
+                    className="sr-only"
+                    accept="image/*"
+                    onChange={handleSelectSelfieFile}
+                  />
+                </label>
 
                 <button
                   type="button"

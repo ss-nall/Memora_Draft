@@ -125,7 +125,13 @@ def find_matching_photos(db, event_id: str, target_embedding: list, threshold: f
     Builds the FAISS index on the fly from the persistent DB.
     Returns a list of media_ids.
     """
+    import uuid
     from models.face import Face
+    if isinstance(event_id, str):
+        try:
+            event_id = uuid.UUID(event_id)
+        except Exception:
+            pass
     faces = db.query(Face).filter(Face.event_id == event_id).all()
     
     if not faces:

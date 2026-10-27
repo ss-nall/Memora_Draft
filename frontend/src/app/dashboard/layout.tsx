@@ -18,6 +18,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { CreateEventModal } from "@/components/CreateEventModal";
 
@@ -25,7 +26,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
 
   const mainNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -34,6 +42,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const bottomNavigation = [
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#FCFAEE]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-[#C25E2E] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-medium text-stone-500">Checking credentials...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-[#FCFAEE] overflow-hidden text-[#1C2321] font-sans">

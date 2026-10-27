@@ -18,6 +18,39 @@ from models.event import Event
 logger = logging.getLogger(__name__)
 
 # ==============================================================================
+# MoviePy 1.x and 2.x Compatibility Helpers
+# ==============================================================================
+def safe_set_duration(clip, duration: float):
+    if hasattr(clip, "with_duration"):
+        return clip.with_duration(duration)
+    return clip.set_duration(duration)
+
+def safe_set_audio(clip, audio):
+    if hasattr(clip, "with_audio"):
+        return clip.with_audio(audio)
+    return clip.set_audio(audio)
+
+def safe_subclip(clip_or_audio, start: float, end: float):
+    if hasattr(clip_or_audio, "subclipped"):
+        return clip_or_audio.subclipped(start, end)
+    return clip_or_audio.subclip(start, end)
+
+def safe_fade(clip, duration: float = 0.5):
+    try:
+        from moviepy import vfx
+        if hasattr(clip, "with_effects"):
+            return clip.with_effects([vfx.FadeIn(duration), vfx.FadeOut(duration)])
+    except Exception:
+        pass
+    if hasattr(clip, "fadein") and hasattr(clip, "fadeout"):
+        try:
+            return clip.fadein(duration).fadeout(duration)
+        except Exception:
+            pass
+    return clip
+
+
+# ==============================================================================
 # AI MODULE EXPLANATION: BACKGROUND PROCESSING WORKER
 # Purpose: Run massive AI math asynchronously so the web server doesn't freeze.
 # Model used: Celery task.
@@ -131,7 +164,9 @@ def process_media_upload(self, media_id: str, file_path: str, event_id: str, is_
             db.commit()
             
         # Retry task if it failed due to a transient error
-        raise self.retry(exc=exc, countdown=5)
+        if self is not None and hasattr(self, "retry"):
+            raise self.retry(exc=exc, countdown=5)
+        return {"status": "failed", "error": str(exc)}
         
     finally:
         db.close()
@@ -201,12 +236,13 @@ def compile_ai_memory_reel(user_id: Optional[str], event_id: str, invite_code: s
                 local_path = path
                 
             if os.path.exists(local_path):
-                clip = ImageClip(local_path).set_duration(slide_duration)
+                clip = ImageClip(local_path)
+                clip = safe_set_duration(clip, slide_duration)
                 
                 # Apply simple fadein/fadeout transitions
                 transition = settings_dict.get("transition", "fade")
                 if transition == "fade":
-                    clip = clip.fadein(0.5).fadeout(0.5)
+                    clip = safe_fade(clip, 0.5)
                 clips.append(clip)
                 
         if not clips:
@@ -229,8 +265,8 @@ def compile_ai_memory_reel(user_id: Optional[str], event_id: str, invite_code: s
                 from moviepy import AudioFileClip
                 audio_clip = AudioFileClip(temp_a)
                 if audio_clip.duration > final_clip.duration:
-                    audio_clip = audio_clip.subclip(0, final_clip.duration)
-                final_clip = final_clip.set_audio(audio_clip)
+                    audio_clip = safe_subclip(audio_clip, 0, final_clip.duration)
+                final_clip = safe_set_audio(final_clip, audio_clip)
             except Exception as e:
                 logger.error(f"Failed to attach audio soundtrack: {e}")
                 
@@ -393,7 +429,7 @@ def compile_video_moments(user_id: Optional[str], event_id: str, invite_code: st
                     start = max(0, t - 2.0)
                     end = min(video.duration, t + 2.0)
                     if end > start:
-                        sub = video.subclip(start, end)
+                        sub = safe_subclip(video, start, end)
                         clips.append(sub)
                         
         if not clips:

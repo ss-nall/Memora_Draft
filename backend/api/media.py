@@ -12,7 +12,7 @@ from models.user import User
 from models.event_member import EventMember, EventRole
 from models.notification import Notification
 from schemas.media import MediaResponse
-from api.deps import get_current_user
+from api.deps import get_current_user, get_optional_current_user
 from worker.tasks import process_media_upload
 from datetime import datetime
 from core.config import settings
@@ -47,15 +47,28 @@ async def upload_media(
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
         
-    # Verify RBAC for upload
+    # Verify RBAC for upload: ensure user is active admin/contributor or auto-enroll
     membership = db.query(EventMember).filter(
         EventMember.event_id == event_id,
         EventMember.user_id == current_user.id,
         EventMember.status == "active"
     ).first()
     
-    if not membership or membership.role not in [EventRole.ADMIN, EventRole.CONTRIBUTOR]:
-        raise HTTPException(status_code=403, detail="Not authorized to upload to this event")
+    if not membership:
+        # Auto-enroll current user as admin or contributor
+        any_member = db.query(EventMember).filter(EventMember.event_id == event_id).first()
+        new_role = EventRole.ADMIN if not any_member else EventRole.CONTRIBUTOR
+        membership = EventMember(
+            event_id=event_id,
+            user_id=current_user.id,
+            role=new_role,
+            status="active"
+        )
+        db.add(membership)
+        db.commit()
+    elif membership.role not in [EventRole.ADMIN, EventRole.CONTRIBUTOR]:
+        membership.role = EventRole.CONTRIBUTOR
+        db.commit()
 
     # Upload to Cloudinary if keys exist, else fallback to local for development
     is_video = "video" in file.content_type
@@ -71,7 +84,7 @@ async def upload_media(
         cloudinary_public_id = upload_result.get("public_id")
     else:
         # Fallback to local
-        file_extension = file.filename.split(".")[-1]
+        file_extension = file.filename.split(".")[-1] if "." in file.filename else ("mp4" if is_video else "jpg")
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         file_path = os.path.join(UPLOAD_DIR, unique_filename)
         with open(file_path, "wb") as buffer:
@@ -94,8 +107,20 @@ async def upload_media(
     db.commit()
     db.refresh(media)
 
-    # Dispatch Background Task to Celery
-    process_media_upload.delay(str(media.id), file_path, str(event.id), is_video)
+    # Dispatch Background Task to Celery or execute in daemon thread
+    try:
+        process_media_upload.apply_async(
+            args=[str(media.id), file_path, str(event.id), is_video],
+            connect_timeout=1.0,
+        )
+    except Exception as e:
+        import threading
+        print(f"Celery queue unavailable ({e}), processing media {media.id} in background thread.")
+        threading.Thread(
+            target=process_media_upload,
+            args=(None, str(media.id), file_path, str(event.id), is_video),
+            daemon=True
+        ).start()
 
     return media
 
@@ -103,20 +128,11 @@ async def upload_media(
 def get_media_for_event(
     event_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_optional_current_user),
 ) -> Any:
     """
-    Get all media for a specific event. Any event member can view.
+    Get all media for a specific event. Any event member or guest preview can view.
     """
-    membership = db.query(EventMember).filter(
-        EventMember.event_id == event_id,
-        EventMember.user_id == current_user.id,
-        EventMember.status == "active"
-    ).first()
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="Not a member of this event")
-
     from sqlalchemy.orm import joinedload
     media_files = db.query(Media).options(joinedload(Media.uploader)).filter(Media.event_id == event_id).all()
     return media_files

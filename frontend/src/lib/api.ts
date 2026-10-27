@@ -1,14 +1,23 @@
 import axios from "axios";
+import { Capacitor } from "@capacitor/core";
 
 // Base URL for our FastAPI backend
 let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 if (typeof window !== "undefined") {
   const hostname = window.location.hostname;
-  if (hostname === "10.0.2.2") {
-    API_URL = "http://10.0.2.2:8000";
-  } else if (hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "") {
-    API_URL = `http://${hostname}:8000`;
+  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
+    if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "10.0.2.2") {
+      API_URL = `http://${hostname}:8000`;
+    } else {
+      API_URL = "http://localhost:8000";
+    }
+  } else {
+    if (hostname === "10.0.2.2") {
+      API_URL = "http://localhost:8000";
+    } else if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
+      API_URL = `http://${hostname}:8000`;
+    }
   }
 }
 
@@ -26,7 +35,14 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
-    delete config.headers["Content-Type"];
+    if (config.headers) {
+      if (typeof (config.headers as any).delete === "function") {
+        (config.headers as any).delete("Content-Type");
+        (config.headers as any).delete("content-type");
+      }
+      delete (config.headers as any)["Content-Type"];
+      delete (config.headers as any)["content-type"];
+    }
   }
   return config;
 });
@@ -46,7 +62,7 @@ api.interceptors.response.use(
           const res = await axios.post(`${API_URL}/auth/refresh`, {
             refresh_token: refreshToken
           });
-          
+
           if (res.status === 200) {
             const newAccessToken = res.data.access_token;
             await storage.setItem("access_token", newAccessToken);
@@ -55,10 +71,20 @@ api.interceptors.response.use(
           }
         }
       } catch (refreshError) {
-        // If refresh fails, log out completely
-        await storage.removeItem("access_token");
-        await storage.removeItem("refresh_token");
-        await storage.removeItem("user");
+        console.warn("Token refresh failed:", refreshError);
+      }
+
+      // If refresh fails or no refresh token exists, clear tokens and redirect to /login
+      await storage.removeItem("access_token");
+      await storage.removeItem("refresh_token");
+      await storage.removeItem("user");
+
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login") &&
+        !window.location.pathname.startsWith("/events") &&
+        window.location.pathname !== "/"
+      ) {
         window.location.href = "/login";
       }
     }

@@ -1,3 +1,4 @@
+import uuid
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
@@ -20,6 +21,16 @@ reusable_oauth2_optional = OAuth2PasswordBearer(
     auto_error=False
 )
 
+def _to_uuid(val):
+    if val is None:
+        return None
+    if isinstance(val, uuid.UUID):
+        return val
+    try:
+        return uuid.UUID(str(val))
+    except Exception:
+        return val
+
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
 ) -> User:
@@ -35,7 +46,8 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    user = db.query(User).filter(User.id == token_data.sub).first()
+    sub_val = _to_uuid(token_data.sub)
+    user = db.query(User).filter(User.id == sub_val).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -52,7 +64,8 @@ def get_optional_current_user(
         token_data = TokenPayload(**payload)
         if payload.get("type") != "access":
             return None
-        return db.query(User).filter(User.id == token_data.sub).first()
+        sub_val = _to_uuid(token_data.sub)
+        return db.query(User).filter(User.id == sub_val).first()
     except Exception:
         return None
 
@@ -66,9 +79,11 @@ def require_event_role(allowed_roles: list[EventRole]):
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
     ):
+        ev_id = _to_uuid(event_id)
+        u_id = _to_uuid(current_user.id)
         membership = db.query(EventMember).filter(
-            EventMember.event_id == event_id,
-            EventMember.user_id == current_user.id,
+            EventMember.event_id == ev_id,
+            EventMember.user_id == u_id,
             EventMember.status == "active"
         ).first()
 
@@ -79,4 +94,5 @@ def require_event_role(allowed_roles: list[EventRole]):
             )
         return current_user
     return role_checker
+
 

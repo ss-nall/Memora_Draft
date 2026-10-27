@@ -17,6 +17,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { MemoryReel } from "@/components/MemoryReel";
 import { TemplateEditor, ReelSettings, defaultSettings } from "@/components/TemplateEditor";
+import { autoEditReel } from "@/lib/reelEditor";
 import storage from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { BiometricScannerModal } from "@/components/BiometricScannerModal";
@@ -47,6 +48,8 @@ function GuestJoinContent() {
   const [matchedPhotos, setMatchedPhotos] = useState<MatchedPhoto[] | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
+  const [autoEditToast, setAutoEditToast] = useState<string | null>(null);
   const [reelSettings, setReelSettings] = useState<ReelSettings>(defaultSettings);
   const [requestStatus, setRequestStatus] = useState<string | null>(null);
   const [guestEmbedding, setGuestEmbedding] = useState<number[] | null>(null);
@@ -232,6 +235,33 @@ function GuestJoinContent() {
     }
   };
 
+  // Instant preview mode: explore all event memories directly
+  const handleExploreAll = async () => {
+    if (!inviteCode.trim()) {
+      setError("Please enter a valid event invite code.");
+      return;
+    }
+    setIsLoading(true);
+    setError("");
+    try {
+      const cleanCode = inviteCode.trim().toUpperCase();
+      const dummyEmb = new Array(512).fill(0.01);
+      const res = await api.post(`/guest/match-embedding/${cleanCode}`, {
+        embedding: dummyEmb
+      });
+      setMatchedPhotos(res.data);
+      sessionStorage.setItem("memora_last_code", cleanCode);
+      if (res.data && res.data.length > 0 && res.data[0].event_id) {
+        setActiveEventId(res.data[0].event_id);
+        fetchCompanions(res.data[0].event_id);
+      }
+    } catch (err: any) {
+      setError(formatApiError(err, "Could not load event photos. Please verify event code."));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Live Auto-Sync / Manual Refresh: Updates gallery when new photos are uploaded in background
   const handleSyncPhotos = useCallback(async (silent = false) => {
     if (!inviteCode) return;
@@ -338,8 +368,19 @@ function GuestJoinContent() {
 
   const getImageUrl = (photo: MatchedPhoto) => {
     if (photo.cloudinary_url) return photo.cloudinary_url;
-    const normalizedPath = photo.storage_url.replace(/\\/g, "/");
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const url = photo.storage_url || "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+      return url;
+    }
+    const normalizedPath = url.replace(/\\/g, "/");
+    let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    if (typeof window !== "undefined") {
+      if (window.location.hostname === "10.0.2.2") {
+        baseUrl = "http://10.0.2.2:8000";
+      } else if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1" && window.location.hostname !== "") {
+        baseUrl = `http://${window.location.hostname}:8000`;
+      }
+    }
     return `${baseUrl}/${normalizedPath}`;
   };
 
@@ -444,6 +485,16 @@ function GuestJoinContent() {
   const photoCount = currentMediaPool.filter((p) => p.media_type !== "VIDEO").length;
   const videoCount = currentMediaPool.filter((p) => p.media_type === "VIDEO").length;
 
+  const handle1ClickAutoEdit = () => {
+    const list = currentMediaPool;
+    if (list.length === 0) return;
+    const result = autoEditReel(list.length, inviteCode ? `Event ${inviteCode}` : "Memora Highlights");
+    setReelSettings(result.settings);
+    setAutoEditToast(result.summary);
+    setIsStudioOpen(true);
+    setTimeout(() => setAutoEditToast(null), 5000);
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full">
       
@@ -487,6 +538,16 @@ function GuestJoinContent() {
                   required
                   className="font-mono uppercase tracking-wider"
                 />
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[11px] text-stone-500">Quick Event:</span>
+                  <button
+                    type="button"
+                    onClick={() => setInviteCode("DEMO-2026")}
+                    className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-[#C25E2E] border border-amber-600/20 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                  >
+                    DEMO-2026
+                  </button>
+                </div>
               </div>
 
               {/* 1-Click Instant Search for Logged-In Users with Enrolled Face ID */}
@@ -573,22 +634,30 @@ function GuestJoinContent() {
                   </button>
 
                   {/* Upload Selfie File Alternative */}
-                  <div className="relative">
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-xs font-medium border-stone-300 text-stone-700 hover:bg-stone-50 h-10 cursor-pointer" 
-                      type="button"
-                    >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-stone-300 text-stone-700 bg-white hover:bg-stone-50 text-xs font-medium cursor-pointer shadow-xs transition-colors">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#C25E2E]" />
+                      <span>Choose From Gallery</span>
                       <input
                         type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        className="sr-only"
                         accept="image/*"
                         multiple
                         onChange={handleSelfieSelect}
                       />
-                      <ImageIcon className="w-3.5 h-3.5 mr-2 text-stone-500" />
-                      Or Select Selfie Image(s)
-                    </Button>
+                    </label>
+
+                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-stone-300 text-stone-700 bg-white hover:bg-stone-50 text-xs font-medium cursor-pointer shadow-xs transition-colors">
+                      <Camera className="w-3.5 h-3.5 text-stone-600" />
+                      <span>Take Photo (Camera)</span>
+                      <input
+                        type="file"
+                        className="sr-only"
+                        accept="image/*"
+                        capture="user"
+                        onChange={handleSelfieSelect}
+                      />
+                    </label>
                   </div>
 
                   {/* Active Reference File Chips */}
@@ -643,13 +712,26 @@ function GuestJoinContent() {
               )}
 
               {/* Submit CTA */}
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-sm font-semibold btn-accent shadow-sm" 
-                isLoading={isLoading}
-              >
-                {isLoading ? "Searching Event Media with AI..." : "Search Event Media"}
-              </Button>
+              <div className="space-y-2 pt-1">
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 text-sm font-semibold btn-accent shadow-sm" 
+                  isLoading={isLoading}
+                >
+                  {isLoading ? "Searching Event Media with AI..." : "Search Event Media"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExploreAll}
+                  disabled={isLoading || !inviteCode.trim()}
+                  className="w-full h-11 text-xs font-semibold border-stone-300 text-stone-700 hover:bg-stone-100 flex items-center justify-center gap-2 cursor-pointer rounded-xl"
+                >
+                  <Eye className="w-4 h-4 text-stone-500" />
+                  <span>Explore All Event Memories (Preview Mode)</span>
+                </Button>
+              </div>
             </form>
           </div>
         </div>
@@ -840,21 +922,43 @@ function GuestJoinContent() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* 1-Click AI Auto Edit Button */}
+                <button
+                  type="button"
+                  onClick={handle1ClickAutoEdit}
+                  className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-[#C25E2E] hover:from-amber-700 hover:to-[#A34A20] text-white rounded-xl text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="1-Click AI Auto-Edit: Auto song selection, beat pacing & video effects"
+                >
+                  <Wand2 className="w-3.5 h-3.5" />
+                  <span>1-Click AI Auto-Edit</span>
+                </button>
+
+                {/* Open Reel Studio Modal */}
+                <button
+                  type="button"
+                  onClick={() => setIsEditorModalOpen(true)}
+                  className="px-3 py-1.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Customize soundtrack, transitions, and video effects"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-[#C25E2E]" />
+                  <span>Reel Studio</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setIsStudioOpen(true)}
-                  className="px-3 py-1.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Play className="w-3.5 h-3.5 text-[#C25E2E]" />
-                  Play Memory Reel
+                  <Play className="w-3.5 h-3.5 fill-white text-white" />
+                  <span>Play Reel</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={isCompiling}
                   onClick={() => handleCompileMemory("AI_REEL")}
-                  className="px-3.5 py-1.5 bg-[#C25E2E] hover:bg-[#A34A20] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isCompiling && compilingType === "AI_REEL" ? (
                     <>
@@ -863,13 +967,30 @@ function GuestJoinContent() {
                     </>
                   ) : (
                     <>
-                      <Film className="w-3.5 h-3.5" />
-                      Compile MP4 Highlight
+                      <Film className="w-3.5 h-3.5 text-[#C25E2E]" />
+                      <span>Compile MP4</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
+
+            {/* AI Auto Edit Toast Banner */}
+            {autoEditToast && (
+              <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-2xl flex items-center justify-between text-xs text-amber-900">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#C25E2E] shrink-0" />
+                  <span>{autoEditToast}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAutoEditToast(null)}
+                  className="text-stone-400 hover:text-stone-700 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Rendered MP4 Ready Alert */}
             {compiledUrl && (
@@ -1048,6 +1169,23 @@ function GuestJoinContent() {
         }}
       />
 
+      {/* Template & Reel Settings Editor Modal */}
+      {isEditorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-sm animate-fadeIn">
+          <TemplateEditor
+            settings={reelSettings}
+            onChange={(newSettings) => setReelSettings(newSettings)}
+            onPlay={() => {
+              setIsEditorModalOpen(false);
+              setIsStudioOpen(true);
+            }}
+            onClose={() => setIsEditorModalOpen(false)}
+            eventTitle={inviteCode ? `Event ${inviteCode}` : "Memora Highlights"}
+            memoriesCount={(groupPhotos || matchedPhotos || []).length}
+          />
+        </div>
+      )}
+
       {/* Memory Reel Slideshow Modal */}
       {matchedPhotos && (
         <MemoryReel
@@ -1055,7 +1193,11 @@ function GuestJoinContent() {
           onClose={() => setIsStudioOpen(false)}
           memories={groupPhotos || matchedPhotos}
           baseUrl={process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}
-          settings={reelSettings}
+          settings={{
+            ...reelSettings,
+            eventTitle: inviteCode ? `Event ${inviteCode}` : "Memora Highlights",
+            memoriesCount: (groupPhotos || matchedPhotos).length
+          }}
         />
       )}
 

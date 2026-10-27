@@ -66,7 +66,7 @@ export default function Navbar() {
         <nav className="flex items-center gap-1 sm:gap-4 text-sm font-medium">
           <Link
             href="/events"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`hidden md:flex px-3 py-1.5 rounded-lg transition-colors items-center gap-1.5 ${
               pathname.startsWith("/events")
                 ? "bg-white text-stone-900 shadow-sm border border-stone-200"
                 : "text-stone-600 hover:text-stone-900 hover:bg-white/60"
@@ -78,7 +78,7 @@ export default function Navbar() {
 
           <Link
             href="/dashboard"
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
+            className={`hidden md:flex px-3 py-1.5 rounded-lg transition-colors ${
               pathname.startsWith("/dashboard")
                 ? "bg-white text-stone-900 shadow-sm border border-stone-200"
                 : "text-stone-600 hover:text-stone-900 hover:bg-white/60"
@@ -88,7 +88,7 @@ export default function Navbar() {
           </Link>
 
           {user ? (
-            <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-stone-300/80 relative">
+            <div className="flex items-center gap-2 sm:gap-3 pl-1 sm:pl-4 border-l-0 md:border-l border-stone-300/80 relative">
               
               {/* Real Notifications Dropdown */}
               <div className="relative">
